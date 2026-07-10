@@ -108,7 +108,7 @@ const DENSITY_RANK: Record<ConnectionDensity, number> = {
 const ARTIFACT_MIN_RANK: Record<string, number> = {
   briefing: 0,            // Minimal — the Daily Pulse
   daily: 0,
-  helpful_hint: 0,        // Minimal — the 6 Help notes (tool instructions);
+  helpful_hint: 0,        // Minimal — the one Help note (tool instructions);
                           // structural, never density-gated
   territory: 1,           // Balanced — the Atlas notes
   continent: 1,
