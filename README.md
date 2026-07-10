@@ -22,6 +22,46 @@ Per `CLAUDE.md § Projection-as-stage`:
 - **You control the loop.** Disable auto-update in settings, clear the token, or close the panel to stop observation.
 - **The map is Bevia's understanding, not your vault.** Two layers: your thinking (the notes), Bevia's understanding (the territories). They sit side by side. They influence each other through the changes *you* make.
 
+## Network use
+
+This plugin talks to a remote Bevia server. It makes no other network
+calls (no telemetry, no third-party analytics). All requests go to the
+host set in **Bevia URL**, which defaults to
+`https://qjxotoeviqlfazjcwask.supabase.co` (Bevia's hosted Edge
+Functions); the account/sign-in surface is `https://bevia.co`. You can
+point **Bevia URL** at your own self-host or staging instance.
+
+Every authenticated request carries your Bevia access token as a
+`Bearer` credential. The one exception is the free "Analyze my vault"
+Discovery preview, which runs anonymously.
+
+**Endpoints called, and what is uploaded to each:**
+
+| Endpoint (`/functions/v1/…`) | When | What leaves your vault |
+|---|---|---|
+| `note-context` | You open/switch a note (Navigator) | The note's **title, a first-paragraph excerpt, and its vault-relative path** |
+| `instant-cartography` | "Analyze my vault" / Discovery preview | The **full body text** of a sampled set of notes (character-capped for the free preview; uncapped when you supply your own model key) |
+| `instant-cartography-status` | While a Discovery map builds | The build session id (polled about every 2.5s until done) |
+| `vault-intake` | Vault intake sync | The **full body text** (`content_text`) of the notes being ingested |
+| `materialization-pull` | Atlas sync | Downloads your map into `Bevia/`; uploads only your token |
+| `vault-sync-status` | While Atlas sync is on | A lightweight sync-signal poll (about every **20 seconds**); uploads only your token |
+| `query-run` | You run a saved query | The query text |
+| `molly-ask` | You use Ask | Your question plus the active note's context |
+| `navigator-orientation`, `navigator-directions`, `navigator-games` | Navigator place-cards | Territory/context identifiers |
+| `territory-research-dossier`, `landmark-reactivation-bundle` | Territory/landmark reads | Territory/landmark identifiers |
+| `projection-scope`, `set-territory-attention`, `set-territory-share` | Projection & Control Tower controls | Territory identifiers plus the setting you changed |
+
+**Polling cadence:** while Atlas sync is enabled the plugin does a full
+pull every **N minutes** (default 10, configurable) and a small
+`vault-sync-status` signal check about every **20 seconds**; a Discovery
+build is polled about every **2.5 seconds** until it completes. All are
+pull-shaped — the plugin asks; the server never pushes to it.
+
+**Account requirement:** the live Navigator, Ask, and Atlas sync
+features require a paid Bevia account (the token gates them). The free
+"Analyze my vault" Discovery preview works with **no account** and no
+token. See <https://bevia.co/pricing>.
+
 ## Install (manual, pre-community-plugin)
 
 1. Build: `npm install && npm run build` from this directory.
