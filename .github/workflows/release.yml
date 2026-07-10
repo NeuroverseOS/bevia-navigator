@@ -8,6 +8,10 @@
 #
 # Trigger: pushing a version tag (the publish script does this), or a
 # manual dispatch that re-releases the current commit's version.
+#
+# (Re-touched 2026-07-10 after org-level Actions were enabled, so GitHub
+# registers this workflow — pushes made while Actions were disabled never
+# registered it, which made workflow_dispatch 404.)
 
 name: Release
 
