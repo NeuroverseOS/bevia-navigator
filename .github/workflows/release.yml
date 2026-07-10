@@ -1,0 +1,54 @@
+# Bevia Navigator — release automation for the PUBLIC plugin repo
+# (NeuroverseOS/bevia-navigator). Copied into .github/workflows/release.yml
+# by scripts/publish-navigator.sh.
+#
+# Obsidian's requirements (community store + BRAT):
+#   - The release TAG must exactly equal manifest.json "version" (no "v").
+#   - Release assets must include main.js + manifest.json (+ styles.css).
+#
+# Trigger: pushing a version tag (the publish script does this), or a
+# manual dispatch that re-releases the current commit's version.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version from manifest
+        id: v
+        run: echo "version=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag matches manifest (tag pushes only)
+        if: github.ref_type == 'tag'
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "${{ steps.v.outputs.version }}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} != manifest version ${{ steps.v.outputs.version }}" >&2
+            exit 1
+          fi
+
+      - name: Build main.js from source
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create release with plugin assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.v.outputs.version }}" \
+            --title "Bevia Navigator ${{ steps.v.outputs.version }}" \
+            --notes "Install via BRAT: add this repo's URL as a beta plugin. Files below are what Obsidian loads." \
+            main.js manifest.json styles.css || \
+          gh release upload "${{ steps.v.outputs.version }}" main.js manifest.json styles.css --clobber

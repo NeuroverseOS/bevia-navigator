@@ -1,0 +1,1042 @@
+/* Bevia Navigator — sidebar styles.
+ *
+ * V3 inspector register adapted for Obsidian's theming.
+ * Uses Obsidian CSS variables where available so the panel respects
+ * the user's theme. */
+
+.bevia-navigator {
+  font-family: var(--font-interface, "Inter", sans-serif);
+  font-size: 13px;
+  color: var(--text-normal);
+  padding: 12px 16px;
+  line-height: 1.45;
+}
+
+.bevia-eyebrow {
+  font-family: var(--font-monospace, "Fira Code", monospace);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.bevia-mono {
+  font-family: var(--font-monospace, "Fira Code", monospace);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.bevia-header {
+  margin-bottom: 16px;
+}
+
+.bevia-note-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-normal);
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.bevia-section {
+  margin-bottom: 20px;
+}
+
+/* Territory cards */
+
+.bevia-territory {
+  background: var(--background-secondary);
+  border-left: 3px solid var(--background-modifier-border);
+  border-radius: 2px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.bevia-strength-high {
+  border-left-color: var(--interactive-accent);
+}
+.bevia-strength-medium {
+  border-left-color: var(--text-accent);
+  opacity: 0.92;
+}
+.bevia-strength-low {
+  opacity: 0.78;
+}
+
+.bevia-territory-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.bevia-territory-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-normal);
+}
+
+.bevia-territory-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.bevia-territory-summary {
+  margin: 4px 0 8px 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Chips */
+
+.bevia-chip {
+  font-family: var(--font-monospace, "Fira Code", monospace);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+}
+.bevia-chip-high {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.bevia-chip-medium {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* Contributors */
+
+.bevia-contributor-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.bevia-contributor {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-monospace, "Fira Code", monospace);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+}
+.bevia-contributor-kind {
+  font-size: 9px;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bevia-kind-principal {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.bevia-kind-ai {
+  background: rgba(96, 40, 150, 0.14);
+  color: var(--text-normal);
+}
+.bevia-kind-human {
+  background: rgba(193, 122, 47, 0.14);
+  color: var(--text-normal);
+}
+.bevia-kind-bot,
+.bevia-kind-unknown {
+  background: var(--background-modifier-hover);
+  color: var(--text-faint);
+}
+.bevia-attr-inferred .bevia-contributor-kind::after {
+  content: " ?";
+  opacity: 0.6;
+}
+.bevia-attr-unresolved .bevia-contributor-kind::after {
+  content: " ??";
+  opacity: 0.6;
+}
+
+/* Landmarks */
+
+.bevia-landmark-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bevia-landmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+.bevia-landmark-count {
+  opacity: 0.6;
+}
+
+/* States — empty / loading / error */
+
+.bevia-state {
+  padding: 24px 0;
+  color: var(--text-muted);
+}
+.bevia-state p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.bevia-state-error .bevia-error-detail {
+  font-family: var(--font-monospace, "Fira Code", monospace);
+  font-size: 11px;
+  background: var(--background-secondary);
+  padding: 8px 10px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+.bevia-retry,
+.bevia-refresh {
+  margin-top: 8px;
+  font-family: var(--font-monospace, "Fira Code", monospace);
+  font-size: 11px;
+  padding: 4px 10px;
+  background: var(--background-modifier-hover);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 2px;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+/* Footer */
+
+.bevia-footer {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--background-modifier-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ─── Query view (v0.2, ADR-0154) ─────────────────────────────────── */
+
+.bevia-query-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bevia-eyebrow-spaced {
+  margin-top: 8px;
+}
+
+.bevia-query-select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.bevia-query-select:hover {
+  border-color: var(--interactive-accent);
+}
+
+/* Human meta line above every result — place-card register, no JSON. */
+.bevia-query-meta {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 2px 0 6px;
+}
+
+/* Muted second line inside a fact row (result meta / summaries). */
+.bevia-fact-sub {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 1px;
+}
+
+.bevia-query-params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bevia-query-param {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 120px;
+}
+
+.bevia-query-param label {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.bevia-query-input {
+  font-family: inherit;
+  font-size: 11.5px;
+  padding: 4px 8px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  width: 100%;
+}
+
+.bevia-query-result {
+  margin-top: 12px;
+}
+
+.bevia-territory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bevia-kind-unknown {
+  background: var(--background-modifier-hover);
+  color: var(--text-faint);
+}
+
+/* ─── ADR-0170 Atlas / Mind mode indicators ──────────────────────── */
+
+/* Navigator: persistent MIND chip — always visible, never hideable */
+.bevia-mode-chip {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bevia-mode-chip.bevia-mode-mind {
+  background: var(--background-modifier-success);
+  color: var(--text-on-accent);
+  opacity: 0.85;
+}
+
+/* Atlas Inquiry: Atlas / Mind toggle */
+.bevia-mode-toggle {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.bevia-mode-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: 'Fira Code', monospace;
+}
+
+.bevia-mode-btn.bevia-mode-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.bevia-mode-hint {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* ─── The place card (Maps anatomy) ─────────────────────────────────
+ * The You-Are-Here panel: orientation prose, five verb actions, query
+ * chips, fact rows, Directions, Nearby, first-run teach card. Uses
+ * Obsidian theme variables throughout so it respects the user's theme
+ * (the design mock's palette is adapted, not hardcoded). */
+
+/* Orientation prose */
+.bevia-orient {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-normal);
+  margin: 8px 0 0;
+}
+.bevia-orient-summary {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.bevia-humility {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.bevia-orient-tech {
+  margin: 6px 0 0;
+  word-break: break-all;
+}
+
+/* The five verbs */
+.bevia-verbs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 10px;
+}
+.bevia-verb {
+  text-align: center;
+  padding: 8px 2px 6px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+.bevia-verb:hover {
+  background: var(--background-modifier-hover);
+}
+.bevia-verb-ic {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--interactive-accent);
+  color: var(--interactive-accent);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
+.bevia-verb-ic.bevia-filled {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.bevia-verb-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: block;
+  line-height: 1.25;
+}
+
+/* Query chips */
+.bevia-pc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.bevia-pc-chip {
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 11.5px;
+  cursor: pointer;
+  box-shadow: none;
+}
+.bevia-pc-chip:hover,
+.bevia-pc-chip-hot {
+  border-color: var(--interactive-accent);
+  color: var(--interactive-accent);
+}
+.bevia-pc-result {
+  margin: 8px 0 4px;
+}
+.bevia-pc-result:empty {
+  margin: 0;
+}
+
+/* Fact rows — quiet, Maps-style */
+.bevia-fact-rows {
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 12px;
+}
+.bevia-fact-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 7px 4px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  color: var(--text-normal);
+}
+.bevia-fact-row.bevia-clickable {
+  cursor: pointer;
+}
+.bevia-fact-row.bevia-clickable:hover {
+  background: var(--background-modifier-hover);
+}
+.bevia-fact-glyph {
+  color: var(--interactive-accent);
+  width: 16px;
+  flex: none;
+  text-align: center;
+  font-size: 12px;
+}
+.bevia-fact-text {
+  line-height: 1.45;
+}
+
+/* Directions */
+.bevia-dir-input {
+  font-family: inherit;
+  font-size: 12.5px;
+  padding: 6px 8px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  width: 100%;
+}
+.bevia-dir-suggest {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  max-height: 168px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+.bevia-dir-suggest-item {
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text-normal);
+}
+.bevia-dir-suggest-item:hover {
+  background: var(--background-modifier-hover);
+}
+.bevia-dir-result {
+  margin-top: 8px;
+}
+.bevia-route {
+  margin: 8px 0 0;
+  padding-left: 16px;
+}
+.bevia-route li {
+  margin: 6px 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-normal);
+}
+.bevia-route-link {
+  color: var(--interactive-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+.bevia-route-link:hover {
+  text-decoration: underline;
+}
+.bevia-route-when {
+  opacity: 0.75;
+}
+.bevia-invite {
+  border-left: 3px solid var(--interactive-accent);
+  background: var(--background-secondary);
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.bevia-invite p {
+  margin: 0;
+}
+
+/* Nearby */
+.bevia-near-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  align-items: baseline;
+}
+.bevia-near-name {
+  color: var(--text-normal);
+  cursor: pointer;
+  text-decoration: none;
+}
+.bevia-near-name:hover {
+  color: var(--interactive-accent);
+}
+.bevia-near-why {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  text-align: right;
+  max-width: 46%;
+}
+
+/* First-run teach card */
+.bevia-teach {
+  border: 1px dashed var(--interactive-accent);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-normal);
+}
+.bevia-teach p {
+  margin: 0 0 8px;
+}
+.bevia-teach-tag {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--interactive-accent);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+.bevia-teach-cta {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--interactive-accent);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Footer meta line */
+.bevia-pc-meta {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+/* Empty-state slogan / capability copy (shared by empty + offline states) */
+.bevia-slogan {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-normal);
+  margin: 0 0 8px;
+}
+.bevia-capability {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+ * v27 "Observatory" foundation — the design-system token layer (ADR-0151+).
+ * Ported from design/v27-observatory/tokens.js. Scoped under .bevia-v27 so
+ * it never disturbs the existing Navigator/Query inspector styling above.
+ * The funnel surfaces (Discovery, Connect, Claim) render inside .bevia-v27.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+.bevia-v27 {
+  /* type */
+  --bv-serif: 'Spectral', Georgia, serif;
+  --bv-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --bv-sans: 'IBM Plex Sans', system-ui, sans-serif;
+
+  /* light theme (default) */
+  --bv-paper: oklch(0.974 0.004 255);
+  --bv-panel: oklch(0.992 0.003 255);
+  --bv-panel-sunk: oklch(0.955 0.005 255);
+  --bv-ink: oklch(0.29 0.022 262);
+  --bv-ink-soft: oklch(0.46 0.020 262);
+  --bv-ink-faint: oklch(0.62 0.016 262);
+  --bv-ink-ghost: oklch(0.74 0.012 262);
+  --bv-rule: oklch(0.29 0.022 262 / 0.14);
+  --bv-rule-faint: oklch(0.29 0.022 262 / 0.07);
+  --bv-tick: oklch(0.29 0.022 262 / 0.22);
+
+  /* state accents — light: dot oklch(0.55 0.10 H), ink 0.46, tint /0.09, rail /0.55 */
+  --bv-strengthening-dot: oklch(0.55 0.10 246);
+  --bv-strengthening-ink: oklch(0.46 0.10 246);
+  --bv-strengthening-tint: oklch(0.55 0.10 246 / 0.09);
+  --bv-strengthening-rail: oklch(0.55 0.10 246 / 0.55);
+  --bv-emergence-dot: oklch(0.55 0.10 152);
+  --bv-emergence-ink: oklch(0.46 0.10 152);
+  --bv-emergence-tint: oklch(0.55 0.10 152 / 0.09);
+  --bv-emergence-rail: oklch(0.55 0.10 152 / 0.55);
+  --bv-recurring-dot: oklch(0.55 0.10 306);
+  --bv-recurring-ink: oklch(0.46 0.10 306);
+  --bv-recurring-tint: oklch(0.55 0.10 306 / 0.09);
+  --bv-recurring-rail: oklch(0.55 0.10 306 / 0.55);
+  --bv-anomaly-dot: oklch(0.55 0.10 34);
+  --bv-anomaly-ink: oklch(0.46 0.10 34);
+  --bv-anomaly-rail: oklch(0.55 0.10 34 / 0.55);
+  --bv-unverified-dot: oklch(0.62 0.008 262);
+  --bv-unverified-ink: oklch(0.50 0.012 262);
+  --bv-unverified-tint: oklch(0.62 0.008 262 / 0.07);
+  --bv-unverified-rail: oklch(0.62 0.008 262 / 0.4);
+  /* relationship hues for continents — supports 150, emerges_from 300 */
+  --bv-supports-dot: oklch(0.55 0.10 150);
+  --bv-supports-tint: oklch(0.55 0.10 150 / 0.09);
+  --bv-emerges-dot: oklch(0.55 0.10 300);
+  --bv-emerges-tint: oklch(0.55 0.10 300 / 0.09);
+
+  --bv-shadow: 0 30px 70px -34px rgba(20, 30, 55, 0.35);
+
+  font-family: var(--bv-sans);
+  color: var(--bv-ink);
+}
+
+.theme-dark .bevia-v27 {
+  --bv-paper: oklch(0.193 0.014 262);
+  --bv-panel: oklch(0.227 0.016 262);
+  --bv-panel-sunk: oklch(0.171 0.013 262);
+  --bv-ink: oklch(0.93 0.008 255);
+  --bv-ink-soft: oklch(0.74 0.012 255);
+  --bv-ink-faint: oklch(0.58 0.013 255);
+  --bv-ink-ghost: oklch(0.46 0.013 255);
+  --bv-rule: oklch(0.93 0.008 255 / 0.15);
+  --bv-rule-faint: oklch(0.93 0.008 255 / 0.07);
+  --bv-tick: oklch(0.93 0.008 255 / 0.24);
+
+  /* dark: dot oklch(0.76 0.10 H), ink 0.80, tint /0.12, rail /0.6 */
+  --bv-strengthening-dot: oklch(0.76 0.10 246);
+  --bv-strengthening-ink: oklch(0.80 0.09 246);
+  --bv-strengthening-tint: oklch(0.76 0.10 246 / 0.12);
+  --bv-strengthening-rail: oklch(0.76 0.10 246 / 0.6);
+  --bv-emergence-dot: oklch(0.76 0.10 152);
+  --bv-emergence-ink: oklch(0.80 0.09 152);
+  --bv-emergence-tint: oklch(0.76 0.10 152 / 0.12);
+  --bv-emergence-rail: oklch(0.76 0.10 152 / 0.6);
+  --bv-recurring-dot: oklch(0.76 0.10 306);
+  --bv-recurring-ink: oklch(0.80 0.09 306);
+  --bv-recurring-tint: oklch(0.76 0.10 306 / 0.12);
+  --bv-recurring-rail: oklch(0.76 0.10 306 / 0.6);
+  --bv-anomaly-dot: oklch(0.76 0.10 34);
+  --bv-anomaly-ink: oklch(0.80 0.09 34);
+  --bv-anomaly-rail: oklch(0.76 0.10 34 / 0.6);
+  --bv-unverified-dot: oklch(0.62 0.012 262);
+  --bv-unverified-ink: oklch(0.70 0.012 262);
+  --bv-unverified-tint: oklch(0.70 0.012 262 / 0.08);
+  --bv-unverified-rail: oklch(0.70 0.012 262 / 0.4);
+  --bv-supports-dot: oklch(0.76 0.10 150);
+  --bv-supports-tint: oklch(0.76 0.10 150 / 0.12);
+  --bv-emerges-dot: oklch(0.76 0.10 300);
+  --bv-emerges-tint: oklch(0.76 0.10 300 / 0.12);
+
+  --bv-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.8);
+}
+
+/* motion — the "reading" aperture spins; connected pip pulses. Never a bar. */
+@keyframes bv-spin { to { transform: rotate(360deg); } }
+@keyframes bv-spin-rev { to { transform: rotate(-360deg); } }
+@keyframes bv-pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.bv-spin { transform-origin: center; animation: bv-spin 9s linear infinite; }
+.bv-spin-rev { transform-origin: center; animation: bv-spin-rev 6s linear infinite; }
+.bv-pulse { animation: bv-pulse 2.4s ease-out infinite; }
+
+/* ── v27 atoms ─────────────────────────────────────────────────────────── */
+.bv-mono { font-family: var(--bv-mono); text-transform: uppercase; font-weight: 500; color: var(--bv-ink-soft); letter-spacing: 0.14em; }
+.bv-mono.bv-dim { color: var(--bv-ink-faint); }
+.bv-serif { font-family: var(--bv-serif); color: var(--bv-ink); line-height: 1.32; letter-spacing: -0.005em; }
+.bv-serif.bv-italic { font-style: italic; }
+.bv-text { font-family: var(--bv-sans); color: var(--bv-ink-soft); line-height: 1.45; }
+
+.bv-aperture { display: block; flex: 0 0 auto; }
+
+/* primary / ghost buttons */
+.bv-btn {
+  font-family: var(--bv-mono); font-size: 10.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 500; padding: 12px 20px;
+  border-radius: 6px; cursor: pointer; border: 1px solid transparent;
+  background: var(--bv-ink); color: var(--bv-paper);
+}
+.bv-btn.bv-full { width: 100%; }
+.bv-btn.bv-ghost { background: transparent; color: var(--bv-ink-soft); border-color: var(--bv-rule); }
+.bv-btn-bare { border: none; background: transparent; cursor: pointer; font-family: var(--bv-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bv-ink-faint); }
+
+/* territory card — anchor (mono) + finding (serif), left state rail */
+.bv-terr {
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px;
+  border-radius: 8px; border: 1px solid var(--bv-rule);
+  border-left: 2.5px solid var(--bv-strengthening-rail);
+  background: var(--bv-panel);
+}
+.bv-terr.bv-compact { padding: 12px 14px; }
+.bv-terr.bv-muted { background: transparent; opacity: 0.78; border-left-color: var(--bv-rule); }
+.bv-terr-body { flex: 1; min-width: 0; }
+.bv-terr-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 5px; }
+.bv-terr-name { font-family: var(--bv-mono); font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--bv-ink-soft); font-weight: 500; }
+.bv-terr-size { font-family: var(--bv-mono); font-size: 8.5px; letter-spacing: 0.04em; color: var(--bv-ink-faint); flex: 0 0 auto; text-transform: uppercase; }
+.bv-terr-finding { font-family: var(--bv-serif); font-size: 14px; line-height: 1.4; color: var(--bv-ink); }
+.bv-terr.bv-st-emergence { border-left-color: var(--bv-emergence-rail); }
+.bv-terr.bv-st-recurring { border-left-color: var(--bv-recurring-rail); }
+.bv-terr.bv-st-strengthening { border-left-color: var(--bv-strengthening-rail); }
+
+/* the Obsidian-window modal frame the funnel renders inside */
+.bv-vaultmodal { background: var(--bv-paper); color: var(--bv-ink); border-radius: 9px; border: 1px solid var(--bv-rule); overflow: hidden; font-family: var(--bv-sans); }
+.bv-card { background: var(--bv-panel); border-radius: 14px; border: 1px solid var(--bv-rule); box-shadow: var(--bv-shadow); }
+.bv-card-sunk { background: var(--bv-panel-sunk); border: 1px solid var(--bv-rule-faint); border-radius: 8px; }
+
+/* the Discovery modal sizing inside Obsidian's Modal shell */
+.modal.bevia-discovery-modal .modal-content { padding: 0; }
+.bevia-v27 .bv-wrap { padding: 6px 2px; }
+
+/* ── static layout utilities (audit ST2: inline styles → classes) ─────
+ * Genuinely dynamic values (per-call sizes/colors) stay inline; every
+ * repeated static pattern below is a class. */
+.bv-block { display: block; }
+.bv-center { text-align: center; }
+.bv-left { text-align: left; }
+.bv-flex-center { display: flex; align-items: center; justify-content: center; }
+.bv-row { display: flex; align-items: center; }
+.bv-row-start { display: flex; align-items: flex-start; }
+.bv-col { display: flex; flex-direction: column; }
+.bv-col-center { display: flex; flex-direction: column; align-items: center; }
+.bv-mx-auto { margin-left: auto; margin-right: auto; }
+
+/* the v27 modal card — width/centering static; padding varies per state */
+.bv-card.bv-modal-card { max-width: 460px; margin: 0 auto; }
+
+/* readingAperture (motion, never a progress bar) */
+.bv-reading { position: relative; }
+.bv-reading-glow { position: absolute; inset: -8px; border-radius: 50%; background: var(--bv-strengthening-tint); filter: blur(7px); }
+.bv-reading-svg { position: relative; display: block; }
+.bv-reading-pipwrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.bv-reading-pip { border-radius: 50%; background: var(--bv-strengthening-dot); }
+
+/* dot() — filled state dot; size + state color stay inline */
+.bv-dot { border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+
+/* territoryCard's aperture nudge (was an inline marginTop) */
+.bv-terr > .bv-aperture { margin-top: 2px; flex: 0 0 auto; }
+
+/* ── two-door exit panel (Bevia Local spec §12.4) ─────────────────────
+ * Two equal-height door cards; wraps to a column when the surface is
+ * narrow (settings tab). Left-aligned even inside centered modal cards.
+ * CTAs pin to the bottom so the doors read as peers. */
+.bevia-v27 .bv-two-door { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; text-align: left; }
+.bevia-v27 .bv-door { flex: 1 1 175px; min-width: 175px; display: flex; flex-direction: column; gap: 6px; padding: 14px 15px 13px; background: var(--bv-panel-sunk); border: 1px solid var(--bv-rule-faint); border-radius: 10px; }
+.bevia-v27 .bv-door-points { display: flex; flex-direction: column; gap: 3px; margin-bottom: 4px; }
+.bevia-v27 .bv-door .bv-btn { margin-top: auto; }
+
+/* the Home staleness line — one quiet ambient sentence, never a banner
+ * box, never a Notice. Obsidian vars (rendered outside the v27 scope). */
+.bevia-staleness { font-size: 12px; color: var(--text-muted); margin: 0 0 16px; }
+.bevia-staleness a { color: var(--text-muted); text-decoration: underline; }
+
+/* ── generated pixel-true utilities (audit ST2) ─────────────────────
+ * One class per (property, value) pair the plugin previously set as an
+ * inline style. Generated mechanically; values unchanged. Kept last in
+ * this file so they win over base classes at equal specificity, matching
+ * the old inline-style behavior. */
+.bevia-v27 .bv-u-max-width-460px, .bv-u-max-width-460px { max-width: 460px; }
+.bevia-v27 .bv-u-margin-0-auto, .bv-u-margin-0-auto { margin: 0 auto; }
+.bevia-v27 .bv-u-text-align-center, .bv-u-text-align-center { text-align: center; }
+.bevia-v27 .bv-u-margin-bottom-20px, .bv-u-margin-bottom-20px { margin-bottom: 20px; }
+.bevia-v27 .bv-u-margin-bottom-14px, .bv-u-margin-bottom-14px { margin-bottom: 14px; }
+.bevia-v27 .bv-u-margin-0-auto-24px, .bv-u-margin-0-auto-24px { margin: 0 auto 24px; }
+.bevia-v27 .bv-u-margin-bottom-16px, .bv-u-margin-bottom-16px { margin-bottom: 16px; }
+.bevia-v27 .bv-u-display-flex, .bv-u-display-flex { display: flex; }
+.bevia-v27 .bv-u-gap-8px, .bv-u-gap-8px { gap: 8px; }
+.bevia-v27 .bv-u-align-items-flex-start, .bv-u-align-items-flex-start { align-items: flex-start; }
+.bevia-v27 .bv-u-text-align-left, .bv-u-text-align-left { text-align: left; }
+.bevia-v27 .bv-u-padding-11px-13px, .bv-u-padding-11px-13px { padding: 11px 13px; }
+.bevia-v27 .bv-u-margin-top-1px, .bv-u-margin-top-1px { margin-top: 1px; }
+.bevia-v27 .bv-u-justify-content-center, .bv-u-justify-content-center { justify-content: center; }
+.bevia-v27 .bv-u-margin-bottom-28px, .bv-u-margin-bottom-28px { margin-bottom: 28px; }
+.bevia-v27 .bv-u-flex-direction-column, .bv-u-flex-direction-column { flex-direction: column; }
+.bevia-v27 .bv-u-gap-9px, .bv-u-gap-9px { gap: 9px; }
+.bevia-v27 .bv-u-align-items-center, .bv-u-align-items-center { align-items: center; }
+.bevia-v27 .bv-u-margin-bottom-26px, .bv-u-margin-bottom-26px { margin-bottom: 26px; }
+.bevia-v27 .bv-u-font-family-bv-serif, .bv-u-font-family-bv-serif { font-family: var(--bv-serif); }
+.bevia-v27 .bv-u-font-size-17px, .bv-u-font-size-17px { font-size: 17px; }
+.bevia-v27 .bv-u-font-style-italic, .bv-u-font-style-italic { font-style: italic; }
+.bevia-v27 .bv-u-margin-bottom-12px, .bv-u-margin-bottom-12px { margin-bottom: 12px; }
+.bevia-v27 .bv-u-margin-bottom-22px, .bv-u-margin-bottom-22px { margin-bottom: 22px; }
+.bevia-v27 .bv-u-max-width-560px, .bv-u-max-width-560px { max-width: 560px; }
+.bevia-v27 .bv-u-overflow-hidden, .bv-u-overflow-hidden { overflow: hidden; }
+.bevia-v27 .bv-u-padding-26px-30px-20px, .bv-u-padding-26px-30px-20px { padding: 26px 30px 20px; }
+.bevia-v27 .bv-u-border-bottom-1px-solid-bv-rule-faint, .bv-u-border-bottom-1px-solid-bv-rule-faint { border-bottom: 1px solid var(--bv-rule-faint); }
+.bevia-v27 .bv-u-margin-bottom-13px, .bv-u-margin-bottom-13px { margin-bottom: 13px; }
+.bevia-v27 .bv-u-margin-bottom-10px, .bv-u-margin-bottom-10px { margin-bottom: 10px; }
+.bevia-v27 .bv-u-padding-18px-30px-8px, .bv-u-padding-18px-30px-8px { padding: 18px 30px 8px; }
+.bevia-v27 .bv-u-margin-12px-0-4px, .bv-u-margin-12px-0-4px { margin: 12px 0 4px; }
+.bevia-v27 .bv-u-padding-16px-30px-24px, .bv-u-padding-16px-30px-24px { padding: 16px 30px 24px; }
+.bevia-v27 .bv-u-border-top-1px-solid-bv-rule-faint, .bv-u-border-top-1px-solid-bv-rule-faint { border-top: 1px solid var(--bv-rule-faint); }
+.bevia-v27 .bv-u-background-bv-panel-sunk, .bv-u-background-bv-panel-sunk { background: var(--bv-panel-sunk); }
+.bevia-v27 .bv-u-gap-11px, .bv-u-gap-11px { gap: 11px; }
+.bevia-v27 .bv-u-padding-10px-13px, .bv-u-padding-10px-13px { padding: 10px 13px; }
+.bevia-v27 .bv-u-border-radius-8px, .bv-u-border-radius-8px { border-radius: 8px; }
+.bevia-v27 .bv-u-border-1px-solid-bv-rule, .bv-u-border-1px-solid-bv-rule { border: 1px solid var(--bv-rule); }
+.bevia-v27 .bv-u-width-7px, .bv-u-width-7px { width: 7px; }
+.bevia-v27 .bv-u-height-7px, .bv-u-height-7px { height: 7px; }
+.bevia-v27 .bv-u-border-radius-50, .bv-u-border-radius-50 { border-radius: 50%; }
+.bevia-v27 .bv-u-flex-0-0-auto, .bv-u-flex-0-0-auto { flex: 0 0 auto; }
+.bevia-v27 .bv-u-font-size-16px, .bv-u-font-size-16px { font-size: 16px; }
+.bevia-v27 .bv-u-color-bv-ink, .bv-u-color-bv-ink { color: var(--bv-ink); }
+.bevia-v27 .bv-u-font-family-bv-mono, .bv-u-font-family-bv-mono { font-family: var(--bv-mono); }
+.bevia-v27 .bv-u-font-size-9_5px, .bv-u-font-size-9_5px { font-size: 9.5px; }
+.bevia-v27 .bv-u-color-bv-ink-faint, .bv-u-color-bv-ink-faint { color: var(--bv-ink-faint); }
+.bevia-v27 .bv-u-line-height-1_4, .bv-u-line-height-1_4 { line-height: 1.4; }
+.bevia-v27 .bv-u-padding-16px-30px-22px, .bv-u-padding-16px-30px-22px { padding: 16px 30px 22px; }
+.bevia-v27 .bv-u-margin-0-auto-20px, .bv-u-margin-0-auto-20px { margin: 0 auto 20px; }
+.bevia-v27 .bv-u-gap-7px, .bv-u-gap-7px { gap: 7px; }
+.bevia-v27 .bv-u-margin-bottom-11px, .bv-u-margin-bottom-11px { margin-bottom: 11px; }
+.bevia-v27 .bv-u-margin-2px-0-4px, .bv-u-margin-2px-0-4px { margin: -2px 0 4px; }
+.bevia-v27 .bv-u-padding-11px-14px, .bv-u-padding-11px-14px { padding: 11px 14px; }
+.bevia-v27 .bv-u-border-left-2px-solid-var-bv-emergence-dot-interactive-, .bv-u-border-left-2px-solid-var-bv-emergence-dot-interactive- { border-left: 2px solid var(--bv-emergence-dot, var(--interactive-accent)); }
+.bevia-v27 .bv-u-background-var-bv-panel-sunk-background-secondary, .bv-u-background-var-bv-panel-sunk-background-secondary { background: var(--bv-panel-sunk, var(--background-secondary)); }
+.bevia-v27 .bv-u-margin-4px-0-2px, .bv-u-margin-4px-0-2px { margin: 4px 0 2px; }
+.bevia-v27 .bv-u-height-100, .bv-u-height-100 { height: 100%; }
+.bevia-v27 .bv-u-padding-0, .bv-u-padding-0 { padding: 0; }
+.bevia-v27 .bv-u-padding-12px-14px-8px, .bv-u-padding-12px-14px-8px { padding: 12px 14px 8px; }
+.bevia-v27 .bv-u-border-bottom-1px-solid-background-modifier-border, .bv-u-border-bottom-1px-solid-background-modifier-border { border-bottom: 1px solid var(--background-modifier-border); }
+.bevia-v27 .bv-u-color-text-muted, .bv-u-color-text-muted { color: var(--text-muted); }
+.bevia-v27 .bv-u-font-size-12_5px, .bv-u-font-size-12_5px { font-size: 12.5px; }
+.bevia-v27 .bv-u-line-height-1_45, .bv-u-line-height-1_45 { line-height: 1.45; }
+.bevia-v27 .bv-u-margin-4px-0-0, .bv-u-margin-4px-0-0 { margin: 4px 0 0; }
+.bevia-v27 .bv-u-flex-1-1-auto, .bv-u-flex-1-1-auto { flex: 1 1 auto; }
+.bevia-v27 .bv-u-overflow-y-auto, .bv-u-overflow-y-auto { overflow-y: auto; }
+.bevia-v27 .bv-u-padding-12px-14px, .bv-u-padding-12px-14px { padding: 12px 14px; }
+.bevia-v27 .bv-u-border-top-1px-solid-background-modifier-border, .bv-u-border-top-1px-solid-background-modifier-border { border-top: 1px solid var(--background-modifier-border); }
+.bevia-v27 .bv-u-padding-10px-12px, .bv-u-padding-10px-12px { padding: 10px 12px; }
+.bevia-v27 .bv-u-width-100, .bv-u-width-100 { width: 100%; }
+.bevia-v27 .bv-u-resize-vertical, .bv-u-resize-vertical { resize: vertical; }
+.bevia-v27 .bv-u-font-size-13px, .bv-u-font-size-13px { font-size: 13px; }
+.bevia-v27 .bv-u-margin-0-0-8px, .bv-u-margin-0-0-8px { margin: 0 0 8px; }
+.bevia-v27 .bv-u-margin-0-0-14px, .bv-u-margin-0-0-14px { margin: 0 0 14px; }
+.bevia-v27 .bv-u-padding-left-18px, .bv-u-padding-left-18px { padding-left: 18px; }
+.bevia-v27 .bv-u-line-height-1_5, .bv-u-line-height-1_5 { line-height: 1.5; }
+.bevia-v27 .bv-u-color-text-accent, .bv-u-color-text-accent { color: var(--text-accent); }
+.bevia-v27 .bv-u-margin-bottom-6px, .bv-u-margin-bottom-6px { margin-bottom: 6px; }
+.bevia-v27 .bv-u-display-block, .bv-u-display-block { display: block; }
+.bevia-v27 .bv-u-margin-0-0-6px, .bv-u-margin-0-0-6px { margin: 0 0 6px; }
+.bevia-v27 .bv-u-padding-7px-10px, .bv-u-padding-7px-10px { padding: 7px 10px; }
+.bevia-v27 .bv-u-cursor-pointer, .bv-u-cursor-pointer { cursor: pointer; }
+.bevia-v27 .bv-u-color-text-error, .bv-u-color-text-error { color: var(--text-error); }
+.bevia-v27 .bv-u-margin-0-0-10px, .bv-u-margin-0-0-10px { margin: 0 0 10px; }
+.bevia-v27 .bv-u-padding-8px-10px, .bv-u-padding-8px-10px { padding: 8px 10px; }
+.bevia-v27 .bv-u-background-background-secondary, .bv-u-background-background-secondary { background: var(--background-secondary); }
+.bevia-v27 .bv-u-margin-0, .bv-u-margin-0 { margin: 0; }
+.bevia-v27 .bv-u-font-size-13_5px, .bv-u-font-size-13_5px { font-size: 13.5px; }
+.bevia-v27 .bv-u-font-weight-600, .bv-u-font-weight-600 { font-weight: 600; }
+.bevia-v27 .bv-u-margin-0-0-16px, .bv-u-margin-0-0-16px { margin: 0 0 16px; }
+.bevia-v27 .bv-u-margin-0-0-18px, .bv-u-margin-0-0-18px { margin: 0 0 18px; }
+.bevia-v27 .bv-u-margin-top-0, .bv-u-margin-top-0 { margin-top: 0; }
+.bevia-v27 .bv-u-margin-2px-0-12px, .bv-u-margin-2px-0-12px { margin: 2px 0 12px; }
+.bevia-v27 .bv-u-font-size-12px, .bv-u-font-size-12px { font-size: 12px; }
+.bevia-v27 .bv-u-margin-5px-0, .bv-u-margin-5px-0 { margin: 5px 0; }
+.bevia-v27 .bv-u-max-width-760px, .bv-u-max-width-760px { max-width: 760px; }
+.bevia-v27 .bv-u-padding-28px-24px-64px, .bv-u-padding-28px-24px-64px { padding: 28px 24px 64px; }
+.bevia-v27 .bv-u-margin-6px-0-8px, .bv-u-margin-6px-0-8px { margin: 6px 0 8px; }
+.bevia-v27 .bv-u-display-inline-block, .bv-u-display-inline-block { display: inline-block; }
+.bevia-v27 .bv-u-padding-18px-20px, .bv-u-padding-18px-20px { padding: 18px 20px; }
+.bevia-v27 .bv-u-border-radius-12px, .bv-u-border-radius-12px { border-radius: 12px; }
+.bevia-v27 .bv-u-border-1px-solid-background-modifier-border, .bv-u-border-1px-solid-background-modifier-border { border: 1px solid var(--background-modifier-border); }
+.bevia-v27 .bv-u-margin-4px-0-18px, .bv-u-margin-4px-0-18px { margin: 4px 0 18px; }
+.bevia-v27 .bv-u-margin-0-0-12px, .bv-u-margin-0-0-12px { margin: 0 0 12px; }
+.bevia-v27 .bv-u-font-size-15px, .bv-u-font-size-15px { font-size: 15px; }
+.bevia-v27 .bv-u-padding-10px-18px, .bv-u-padding-10px-18px { padding: 10px 18px; }
+.bevia-v27 .bv-u-gap-10px, .bv-u-gap-10px { gap: 10px; }
+.bevia-v27 .bv-u-border-radius-10px, .bv-u-border-radius-10px { border-radius: 10px; }
+.bevia-v27 .bv-u-margin-18px-0-6px, .bv-u-margin-18px-0-6px { margin: 18px 0 6px; }
+.bevia-v27 .bv-u-width-9px, .bv-u-width-9px { width: 9px; }
+.bevia-v27 .bv-u-height-9px, .bv-u-height-9px { height: 9px; }
+.bevia-v27 .bv-u-margin-30px-0-4px, .bv-u-margin-30px-0-4px { margin: 30px 0 4px; }
+.bevia-v27 .bv-u-margin-bottom-18px, .bv-u-margin-bottom-18px { margin-bottom: 18px; }
+.bevia-v27 .bv-u-position-relative, .bv-u-position-relative { position: relative; }
+.bevia-v27 .bv-u-position-absolute, .bv-u-position-absolute { position: absolute; }
+.bevia-v27 .bv-u-inset-6px, .bv-u-inset-6px { inset: -6px; }
+.bevia-v27 .bv-u-border-1px-solid-bv-strengthening-rail, .bv-u-border-1px-solid-bv-strengthening-rail { border: 1px solid var(--bv-strengthening-rail); }
+.bevia-v27 .bv-u-width-380px, .bv-u-width-380px { width: 380px; }
+.bevia-v27 .bv-u-max-width-100, .bv-u-max-width-100 { max-width: 100%; }
+.bevia-v27 .bv-u-padding-30px-28px-26px, .bv-u-padding-30px-28px-26px { padding: 30px 28px 26px; }
+.bevia-v27 .bv-u-margin-0-auto-22px, .bv-u-margin-0-auto-22px { margin: 0 auto 22px; }
+.bevia-v27 .bv-u-margin-bottom-8px, .bv-u-margin-bottom-8px { margin-bottom: 8px; }
+.bevia-v27 .bv-u-box-sizing-border-box, .bv-u-box-sizing-border-box { box-sizing: border-box; }
+.bevia-v27 .bv-u-padding-12px-13px, .bv-u-padding-12px-13px { padding: 12px 13px; }
+.bevia-v27 .bv-u-border-radius-6px, .bv-u-border-radius-6px { border-radius: 6px; }
+.bevia-v27 .bv-u-background-bv-strengthening-tint, .bv-u-background-bv-strengthening-tint { background: var(--bv-strengthening-tint); }
+.bevia-v27 .bv-u-max-width-360px, .bv-u-max-width-360px { max-width: 360px; }
+.bevia-v27 .bv-u-padding-24px-22px, .bv-u-padding-24px-22px { padding: 24px 22px; }
+.bevia-v27 .bv-u-inset-7px, .bv-u-inset-7px { inset: -7px; }
+.bevia-v27 .bv-u-padding-top-16px, .bv-u-padding-top-16px { padding-top: 16px; }
+.bevia-v27 .bv-u-margin-top-16px, .bv-u-margin-top-16px { margin-top: 16px; }
+.bevia-v27 .bv-u-inset-3px, .bv-u-inset-3px { inset: -3px; }
+.bevia-v27 .bv-u-margin-top-8px, .bv-u-margin-top-8px { margin-top: 8px; }
+.bevia-v27 .bv-u-margin-top-12px, .bv-u-margin-top-12px { margin-top: 12px; }
+.bevia-v27 .bv-u-margin-2px-0-0, .bv-u-margin-2px-0-0 { margin: 2px 0 0; }
+.bevia-v27 .bv-u-margin-top-4px, .bv-u-margin-top-4px { margin-top: 4px; }
+
+/* ─── Navigator round 2 (2026-07-09): chip→Ask handoff + evidence drill ── */
+
+.bevia-ask-handoff {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--background-modifier-border);
+}
+.bevia-ask-handoff a {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+.bevia-ask-handoff a:hover { text-decoration: underline; }
+
+.bevia-evidence-drill {
+  margin: 6px 0 4px 22px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--background-modifier-border);
+}
+.bevia-evidence-row { margin: 0 0 9px; }
+.bevia-evidence-when {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 1px;
+}
+.bevia-evidence-excerpt {
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin: 0;
+}
+.bevia-evidence-more {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+.bevia-evidence-more:hover { text-decoration: underline; }
+
+/* ── Ask Bevia composer (Query view + Navigator) ─────────────────── */
+.bevia-query-ask { margin-top: 14px; }
+.bevia-query-ask-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+.bevia-query-ask-input { flex: 1; min-width: 0; }

@@ -1,0 +1,25 @@
+{
+  "name": "@bevia/obsidian-plugin",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Bevia Navigator \u2014 the cartographic overlay for Obsidian. Sits beside the note you're writing and projects Bevia's understanding of it (territories, landmarks, contributors) into a side panel. Source-immutable per CLAUDE.md \u00a7 Projection-as-stage doctrine.",
+  "main": "main.js",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs"
+  },
+  "keywords": [
+    "obsidian-plugin",
+    "bevia",
+    "cartographic-cognition"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "0.21.5",
+    "obsidian": "1.5.7",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
+  }
+}
