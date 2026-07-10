@@ -592,17 +592,16 @@ class DiscoveryModal extends Modal {
         body: JSON.stringify({ notes, ...(byok ? { byok_gemini_key: this.byokKey } : {}) }),
         throw: false,
       });
-      if (res.status === 429) {
-        // The EF's caps speak in a human voice — surface its copy, not a code.
-        let msg = "Today's free map is used up — try again tomorrow.";
+      if (res.status < 200 || res.status >= 300) {
+        // The EF's refusals speak in a human voice (bad key shape, key
+        // rejected, caps reached) — ALWAYS surface its copy, never a
+        // bare status code. Fall back per class only when no copy came.
+        let msg =
+          res.status === 429
+            ? "Today's free map is used up — try again tomorrow."
+            : `Discovery analysis failed (${res.status}).`;
         try { const p = res.json as { error?: string }; if (p?.error) msg = p.error; } catch { /* keep fallback */ }
         new Notice(msg, 9000);
-        this.state = "invitation";
-        this.render();
-        return;
-      }
-      if (res.status < 200 || res.status >= 300) {
-        new Notice(`Discovery analysis failed (${res.status}).`);
         this.state = "invitation";
         this.render();
         return;

@@ -11,7 +11,7 @@
 // commands the ribbon/command-palette expose. It never modifies the
 // user's notes.
 
-import { ItemView, Setting, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, Setting, WorkspaceLeaf } from "obsidian";
 import type BeviaNavigatorPlugin from "./main";
 import { openConnectModal } from "./connect";
 import { analyzeVault } from "./analyze";
@@ -328,6 +328,38 @@ export class BeviaHomeView extends ItemView {
     // views below + apertures), not by a breadth dial.
     this.section(wrap, "What reaches this vault");
     new Setting(wrap)
+      .setName("Choose what syncs")
+      .setDesc(
+        "Pick the slice of your Atlas that lands here — just the daily read, just ideas, " +
+          "everything — plus time window and importance.",
+      )
+      .addButton((b) =>
+        b
+          .setButtonText("Choose")
+          .setCta()
+          .onClick(() => {
+            // Deep-link into this plugin's settings tab, where the
+            // "Choose what syncs" panel lives (ADR-0202: the control UI
+            // may live in many surfaces; the policy stays canonical).
+            const settingApi = (this.app as unknown as {
+              setting?: { open: () => void; openTabById: (id: string) => void };
+            }).setting;
+            settingApi?.open();
+            settingApi?.openTabById(this.plugin.manifest.id);
+          }),
+      );
+    new Setting(wrap)
+      .setName("Sort your Bevia folders")
+      .setDesc(
+        "By last activity (Bevia only rewrites a note when something actually changed, so " +
+          "modified time is honest) or A → Z. Sets Obsidian's file-explorer sort — the same " +
+          "control as the sort icon at the top of the file list.",
+      )
+      .addButton((b) =>
+        b.setButtonText("Last activity").onClick(() => this.setExplorerSort("byModifiedTime")),
+      )
+      .addButton((b) => b.setButtonText("A → Z").onClick(() => this.setExplorerSort("alphabetical")));
+    new Setting(wrap)
       .setName("What Bevia writes & where")
       .setDesc("See exactly which files Bevia writes into this vault.")
       .addButton((b) =>
@@ -371,6 +403,25 @@ export class BeviaHomeView extends ItemView {
       .addButton((b) =>
         b.setButtonText("Open bevia.co").onClick(() => window.open(this.plugin.settings.appUrl, "_blank")),
       );
+  }
+
+  /** Set Obsidian's file-explorer sort — the same state its sort icon
+   *  controls. The explorer view's setSortOrder is internal-but-stable
+   *  API (community plugins rely on it); if it ever moves, fall back to
+   *  pointing at the manual control instead of failing silently. */
+  private setExplorerSort(order: "byModifiedTime" | "alphabetical"): void {
+    const leaf = this.app.workspace.getLeavesOfType("file-explorer")[0];
+    const view = leaf?.view as unknown as { setSortOrder?: (o: string) => void } | undefined;
+    if (view?.setSortOrder) {
+      view.setSortOrder(order);
+      new Notice(
+        order === "alphabetical"
+          ? "File list sorted A → Z."
+          : "File list sorted by last activity (newest first).",
+      );
+    } else {
+      new Notice("Couldn't reach the file explorer — use the sort icon at the top of the file list.");
+    }
   }
 
   private section(parent: HTMLElement, title: string): void {
