@@ -34,6 +34,10 @@ import {
   BEVIA_ASK_VIEW_TYPE,
   BeviaAskView,
 } from "./ask-view";
+import {
+  BEVIA_PLAY_VIEW_TYPE,
+  BeviaPlayView,
+} from "./play-view";
 import { beviaLinkifier } from "./linkifier";
 import { analyzeVault } from "./analyze";
 import { openAskMolly } from "./ask";
@@ -122,6 +126,10 @@ export default class BeviaNavigatorPlugin extends Plugin {
       BEVIA_ASK_VIEW_TYPE,
       (leaf) => new BeviaAskView(leaf, this),
     );
+    this.registerView(
+      BEVIA_PLAY_VIEW_TYPE,
+      (leaf) => new BeviaPlayView(leaf, this),
+    );
 
     // Home Base — the front door. Opens as a full tab and explains what
     // Bevia is, whether you're connected, and what you can do.
@@ -154,6 +162,17 @@ export default class BeviaNavigatorPlugin extends Plugin {
       id: "bevia-ask-molly",
       name: "Ask Bevia (quick popup)",
       callback: () => openAskMolly(this),
+    });
+
+    // Play — games dealt from the user's own map (Two Truths and a Lie,
+    // Expedition, Time Machine). User-initiated only: a command + a Home
+    // row, never a badge or a nag (docs/specs/navigator-games-spec.md).
+    this.addCommand({
+      id: "open-bevia-play",
+      name: "Play — games from your map",
+      callback: async () => {
+        await this.activatePlayView();
+      },
     });
 
     // Graph view recipes — color the graph along one human axis (origin /
@@ -465,6 +484,11 @@ export default class BeviaNavigatorPlugin extends Plugin {
   /** Open the conversational Ask Bevia panel in the right sidebar. */
   async activateAskView(): Promise<void> {
     await this.openSidebarView(BEVIA_ASK_VIEW_TYPE);
+  }
+
+  /** Open the Play panel (games dealt from the map) in the right sidebar. */
+  async activatePlayView(): Promise<void> {
+    await this.openSidebarView(BEVIA_PLAY_VIEW_TYPE);
   }
 
   /** Open the Ask panel AND run a question in it. This is what makes

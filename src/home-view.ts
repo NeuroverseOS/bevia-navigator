@@ -234,6 +234,10 @@ export class BeviaHomeView extends ItemView {
         .setDesc("Ask your map a question — contradictions this week, fastest-growing territories, what an AI contributed.")
         .addButton((b) => b.setButtonText("Open").onClick(() => this.plugin.activateQueryView()));
       new Setting(wrap)
+        .setName("Play")
+        .setDesc("Games dealt from your own map — catch the fiction among your real notes, revisit a dormant territory, replay how a territory changed.")
+        .addButton((b) => b.setButtonText("Open").onClick(() => void this.plugin.activatePlayView()));
+      new Setting(wrap)
         .setName("Sync now")
         .setDesc("Pull your latest territories and daily reads into the Bevia/ folder right now.")
         .addButton((b) => b.setButtonText("Sync").onClick(() => void syncAtlasNow(this.plugin)));

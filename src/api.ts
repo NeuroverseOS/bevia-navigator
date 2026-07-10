@@ -535,3 +535,86 @@ export async function fetchMollyAsk(
   }
   return res.json as MollyAskResponse;
 }
+
+// ─── Navigator Games — /navigator-games ─────────────────────────────────────
+//
+// Three games dealt from the user's own substrate (spec:
+// docs/specs/navigator-games-spec.md). One EF owns every deal
+// composition (canonical readout pattern); the view only renders and
+// flips. Reveal data ships with the deal — the flip is a client
+// interaction, never a second compose.
+
+export type GameKind = "two_truths" | "expedition" | "time_machine";
+
+export interface GameEvidence {
+  moment_id: string;
+  excerpt: string;
+  occurred_at: string;
+  source_kind: string | null;
+}
+
+export interface TwoTruthsReading {
+  id: string;
+  text: string;
+  /** True on exactly one reading — the game's fiction. Never persisted,
+   *  always badged as fiction at reveal. */
+  is_lie: boolean;
+  evidence: GameEvidence[];
+}
+
+export interface TwoTruthsDeal {
+  game: "two_truths";
+  readings: TwoTruthsReading[];
+}
+
+export interface ExpeditionDeal {
+  game: "expedition";
+  territory: {
+    id: string;
+    label: string;
+    note_count: number;
+    last_active_at: string;
+    dormant_days: number;
+  };
+  reveal: {
+    summary: string;
+    landmarks: { text: string; occurred_at: string | null }[];
+    evidence: GameEvidence[];
+  };
+}
+
+export interface TimeMachineDeal {
+  game: "time_machine";
+  territory: { id: string; label: string };
+  then: { observed_at: string; state_summary: string };
+  now: { observed_at: string; state_summary: string };
+  evolution: {
+    north: string;
+    east: string;
+    south: string;
+    west: string;
+  };
+}
+
+export interface GameUnavailable {
+  game: GameKind;
+  unavailable: true;
+  /** Honest absence — why the map can't deal this game yet. */
+  reason: string;
+}
+
+export type GameDeal =
+  | TwoTruthsDeal
+  | ExpeditionDeal
+  | TimeMachineDeal
+  | GameUnavailable;
+
+/** Deal one game round. Expedition and Time Machine are pure substrate
+ *  reads ($0); Two Truths runs one schema-constrained model call (the
+ *  fabricated reading) on the user's own key via the SPE. */
+export async function fetchGameDeal(
+  config: BeviaClientConfig,
+  action: "deal_two_truths" | "deal_expedition" | "deal_time_machine",
+): Promise<GameDeal> {
+  return postBevia<GameDeal>(config, "navigator-games", { action });
+}
