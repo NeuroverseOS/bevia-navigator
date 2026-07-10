@@ -3,10 +3,17 @@
 // Every place the plugin used to dead-end into a single "create an
 // account" CTA now exits through TWO doors:
 //
-//   Own it — Bevia Local · $15 once · runs on this machine · your data
-//   never leaves. Not purchasable yet, so the door says so honestly
-//   ("almost here") and opens bevia.co/local in the browser — it
-//   informs, it never pretends to sell.
+//   Own it — Bevia Local · $15 once, launch price (list $30) · runs on
+//   this machine · your data never leaves. Not purchasable yet, so the
+//   door says so honestly ("almost here") and opens bevia.co/local in
+//   the browser — it informs, it never pretends to sell.
+//
+//   PRICE STRINGS MIRROR src/copy/canonical.ts PRICING (this package
+//   can't import the website's module). Local = LOCAL_PRICE_LONG
+//   ("$15 once — launch price (list $30)", ADR-0216 as amended
+//   2026-07-09; launch-price licenses grandfathered forever, the $30
+//   list is real). Cloud = "from $15/mo" (Standard $15 / Pro $30).
+//   When canonical.ts changes, change here too.
 //
 //   Rent it — Bevia Cloud · from $15/mo · zero setup · we run the
 //   models. This door IS the surface's existing create-account/connect
@@ -67,7 +74,7 @@ export function renderTwoDoorPanel(
 
   // Door 1 — Own it. Honest copy: Local isn't purchasable yet, hence
   // "almost here" — the CTA is a learn-more, never a fake buy button.
-  const own = door("Own it", "Bevia Local", "$15 once", [
+  const own = door("Own it", "Bevia Local", "$15 once — launch price (list $30)", [
     "Runs on this machine.",
     "Your data never leaves.",
   ]);
