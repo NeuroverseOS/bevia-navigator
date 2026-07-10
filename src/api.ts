@@ -618,3 +618,28 @@ export async function fetchGameDeal(
 ): Promise<GameDeal> {
   return postBevia<GameDeal>(config, "navigator-games", { action });
 }
+
+export interface GameReadinessEntry {
+  ready: boolean;
+  /** Honest absence — what the map still needs before this game can
+   *  deal (with real counts; never a clock, never a progress bar). */
+  detail: string;
+}
+
+export interface GameReadinessResponse {
+  readiness: {
+    two_truths: GameReadinessEntry;
+    expedition: GameReadinessEntry;
+    time_machine: GameReadinessEntry;
+  };
+}
+
+/** Which games can this map support right now? Pure substrate read —
+ *  the games switch on from substrate density, never a clock. */
+export async function fetchGameReadiness(
+  config: BeviaClientConfig,
+): Promise<GameReadinessResponse> {
+  return postBevia<GameReadinessResponse>(config, "navigator-games", {
+    action: "readiness",
+  });
+}

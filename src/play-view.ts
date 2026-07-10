@@ -23,8 +23,10 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import {
   fetchGameDeal,
+  fetchGameReadiness,
   BeviaApiError,
   type GameDeal,
+  type GameReadinessResponse,
   type TwoTruthsDeal,
   type ExpeditionDeal,
   type TimeMachineDeal,
@@ -35,22 +37,26 @@ import type BeviaNavigatorPlugin from "./main";
 export const BEVIA_PLAY_VIEW_TYPE = "bevia-play-view";
 
 type Action = "deal_two_truths" | "deal_expedition" | "deal_time_machine";
+type GameKey = "two_truths" | "expedition" | "time_machine";
 
-const GAMES: { action: Action; name: string; blurb: string }[] = [
+const GAMES: { action: Action; key: GameKey; name: string; blurb: string }[] = [
   {
     action: "deal_two_truths",
+    key: "two_truths",
     name: "Two Truths and a Lie",
     blurb:
       "Three readings about your thinking. Two are real — with the receipts. One is the game's fiction. Catch it.",
   },
   {
     action: "deal_expedition",
+    key: "expedition",
     name: "Expedition",
     blurb:
       "A territory you haven't touched in months, dealt face-down. What do you remember before the card flips?",
   },
   {
     action: "deal_time_machine",
+    key: "time_machine",
     name: "Time Machine",
     blurb:
       "What a territory was doing months ago vs now. Recall what changed — then read the map's own account.",
@@ -147,12 +153,68 @@ export class BeviaPlayView extends ItemView {
     this.renderFooter();
   }
 
-  // ── Menu ───────────────────────────────────────────────────────────
+  // ── Menu — readiness-gated ─────────────────────────────────────────
+  //
+  // The games switch on from substrate density, never a clock. Until a
+  // game's substrate exists, its card carries the map's own explanation
+  // of what's still forming (honest absence, real counts, no progress
+  // bars — ADR-0176). If the readiness read itself fails for a
+  // non-auth reason, fall back to offering every deal: each deal
+  // explains itself server-side when it can't be made.
 
   private renderMenu(): void {
     if (!this.body) return;
     this.body.empty();
+    const pending = this.body.createEl("p", { text: "Reading your map…" });
+    pending.addClass("bv-u-color-text-muted");
+    pending.addClass("bv-u-font-size-13px");
+
+    void fetchGameReadiness({
+      baseUrl: this.plugin.settings.baseUrl,
+      token: this.plugin.settings.token,
+    })
+      .then((res) => this.renderMenuCards(res))
+      .catch((e) => {
+        if (!this.body) return;
+        if (e instanceof BeviaApiError && (e.status === 401 || e.status === 402)) {
+          this.body.empty();
+          const err = this.body.createEl("p", { text: e.message });
+          err.addClass("bv-u-color-text-error");
+          err.addClass("bv-u-font-size-13px");
+          return;
+        }
+        // Readiness hiccup ≠ locked surface — let the deals speak.
+        this.renderMenuCards(null);
+      });
+  }
+
+  private renderMenuCards(res: GameReadinessResponse | null): void {
+    if (!this.body) return;
+    this.body.empty();
+
+    const readiness = res?.readiness ?? null;
+    const readyCount = readiness
+      ? GAMES.filter((g) => readiness[g.key].ready).length
+      : GAMES.length;
+
+    if (readiness && readyCount === 0) {
+      const intro = this.body.createEl("p", {
+        text:
+          "Your Atlas is still learning your terrain. Each game deals from real substance " +
+          "— territories with evidence behind them, places that went quiet, before-and-after " +
+          "observations — so each one switches on when your map can support it. Here's where " +
+          "each stands:",
+      });
+      intro.addClass("bv-u-color-text-muted");
+      intro.addClass("bv-u-font-size-13px");
+      intro.addClass("bv-u-line-height-1_5");
+      intro.addClass("bv-u-margin-0-0-12px");
+    }
+
     for (const g of GAMES) {
+      const entry = readiness ? readiness[g.key] : null;
+      const ready = entry ? entry.ready : true;
+
       const card = this.body.createDiv();
       card.addClass("bv-u-margin-0-0-10px");
       card.addClass("bv-u-padding-8px-10px");
@@ -162,13 +224,28 @@ export class BeviaPlayView extends ItemView {
       name.addClass("bv-u-margin-0");
       name.addClass("bv-u-font-size-13_5px");
       name.addClass("bv-u-font-weight-600");
+      if (!ready) name.addClass("bv-u-color-text-muted");
       const blurb = card.createEl("p", { text: g.blurb });
       blurb.addClass("bv-u-color-text-muted");
       blurb.addClass("bv-u-font-size-12_5px");
       blurb.addClass("bv-u-line-height-1_45");
       blurb.addClass("bv-u-margin-4px-0-8px");
-      const deal = card.createEl("button", { text: "Deal", cls: "mod-cta" });
-      deal.onclick = () => void this.deal(g.action);
+
+      if (ready) {
+        const deal = card.createEl("button", { text: "Deal", cls: "mod-cta" });
+        deal.onclick = () => void this.deal(g.action);
+      } else if (entry) {
+        const eyebrow = card.createEl("div", {
+          cls: "bevia-eyebrow",
+          text: "STILL FORMING",
+        });
+        eyebrow.addClass("bv-u-margin-bottom-6px");
+        const detail = card.createEl("p", { text: entry.detail });
+        detail.addClass("bv-u-color-text-muted");
+        detail.addClass("bv-u-font-size-12_5px");
+        detail.addClass("bv-u-line-height-1_45");
+        detail.addClass("bv-u-margin-0");
+      }
     }
   }
 
