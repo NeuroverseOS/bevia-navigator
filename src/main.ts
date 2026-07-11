@@ -105,9 +105,12 @@ export default class BeviaNavigatorPlugin extends Plugin {
     await this.loadSettings();
 
     // New notes — including the empty ones Obsidian makes when you click an
-    // unresolved [[link]] — belong in the user-owned Workspace, never loose
-    // in the vault root or inside Bevia's managed folders. Enforce it.
-    void this.routeNewNotesToWorkspace();
+    // unresolved [[link]] — can be routed into the user-owned Workspace so
+    // they never land loose in the vault root or inside Bevia's managed
+    // folders. This rewrites Obsidian's CORE "new note location" config, so
+    // it is strictly OPT-IN (default OFF) — Bevia never silently changes a
+    // core editor setting. Only runs when the user enabled it in settings.
+    if (this.settings.routeNewNotes) void this.routeNewNotesToWorkspace();
 
     // Register the sidebar views.
     this.registerView(
@@ -449,24 +452,64 @@ export default class BeviaNavigatorPlugin extends Plugin {
    * (Bevia/5 Workspace). New notes — including the empty ones Obsidian
    * creates when you click an unresolved [[link]] — then land in the one
    * folder Bevia never writes to or reaps, instead of loose in the vault
-   * root or inside the managed Map/Ideas/Today folders. Best-effort: uses
-   * Obsidian's internal config API, so every step is guarded.
+   * root or inside the managed Map/Ideas/Today folders.
+   *
+   * OPT-IN ONLY: this rewrites Obsidian's CORE config, so it runs solely
+   * when the user turned on the "Send new notes to the Workspace folder"
+   * setting. The user's prior choice is captured once so it can be
+   * restored when the setting is turned back off (see
+   * restoreNewNotesLocation). Best-effort: uses Obsidian's internal config
+   * API, so every step is guarded.
    */
-  private async routeNewNotesToWorkspace(): Promise<void> {
+  async routeNewNotesToWorkspace(): Promise<void> {
     const WORKSPACE = "Bevia/5 Workspace";
     try {
       if (!this.app.vault.getAbstractFileByPath(WORKSPACE)) {
         await this.app.vault.createFolder(WORKSPACE).catch(() => {});
       }
       const vault = this.app.vault as unknown as {
+        getConfig?(key: string): unknown;
         setConfig?(key: string, value: unknown): void;
       };
-      if (typeof vault.setConfig === "function") {
-        vault.setConfig("newFileLocation", "folder");
-        vault.setConfig("newFileFolderPath", WORKSPACE);
+      if (typeof vault.setConfig !== "function") return;
+      // Remember the user's prior choice ONCE so disabling can restore it.
+      if (
+        this.settings.priorNewFileLocation === undefined &&
+        typeof vault.getConfig === "function"
+      ) {
+        const loc = vault.getConfig("newFileLocation");
+        const dir = vault.getConfig("newFileFolderPath");
+        this.settings.priorNewFileLocation = typeof loc === "string" ? loc : null;
+        this.settings.priorNewFileFolderPath = typeof dir === "string" ? dir : null;
+        await this.saveSettings();
       }
+      vault.setConfig("newFileLocation", "folder");
+      vault.setConfig("newFileFolderPath", WORKSPACE);
     } catch (e) {
       console.warn("[Bevia] could not route new notes to Workspace:", e);
+    }
+  }
+
+  /** Undo routeNewNotesToWorkspace — restore the user's prior core "new
+   *  note location" config. Called when the setting is turned off, so
+   *  Bevia leaves the editor exactly as it found it. */
+  async restoreNewNotesLocation(): Promise<void> {
+    try {
+      const vault = this.app.vault as unknown as {
+        setConfig?(key: string, value: unknown): void;
+      };
+      if (typeof vault.setConfig !== "function") return;
+      if (this.settings.priorNewFileLocation != null) {
+        vault.setConfig("newFileLocation", this.settings.priorNewFileLocation);
+      }
+      if (this.settings.priorNewFileFolderPath != null) {
+        vault.setConfig("newFileFolderPath", this.settings.priorNewFileFolderPath);
+      }
+      this.settings.priorNewFileLocation = undefined;
+      this.settings.priorNewFileFolderPath = undefined;
+      await this.saveSettings();
+    } catch (e) {
+      console.warn("[Bevia] could not restore new-note location:", e);
     }
   }
 

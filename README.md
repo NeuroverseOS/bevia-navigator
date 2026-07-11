@@ -13,6 +13,32 @@ The cybernetic loop closes at *source*: you write → Bevia notices → Bevia su
 
 That's the Navigator. It's not a dashboard about your notes. It's a map wrapping around the specific place you're currently standing.
 
+## Disclosures — network use, account, and payment
+
+Please read before installing:
+
+- **Network use.** This plugin sends data over the network to a remote
+  Bevia server. It contacts **only** the host configured in the **Bevia
+  URL** setting — by default `https://qjxotoeviqlfazjcwask.supabase.co`
+  (Bevia's hosted Supabase Edge Functions) — and the Bevia web app at
+  `https://bevia.co`. It makes **no** other network calls: no telemetry,
+  no third-party analytics, no ads. What is uploaded to each endpoint is
+  itemized in [Network use](#network-use) below.
+- **Account required.** The core features (the Navigator side panel, Ask,
+  and Living Atlas vault sync) require a **Bevia account**. You paste an
+  access token from the Bevia web app; without a valid token these
+  features do nothing.
+- **Paid service.** A Bevia account is a **paid subscription** (see
+  <https://bevia.co/pricing>). This plugin is a client for that hosted
+  service — it is free to install, but the service it connects to is not.
+  The one exception is the free **“Analyze my vault”** Discovery preview,
+  which runs **anonymously with no account and no token**.
+- **What Bevia writes.** Bevia only writes inside its own `Bevia/` folder.
+  It never edits your existing notes. Vault sync can remove Bevia-authored
+  notes it no longer recognizes, but only files carrying a Bevia
+  frontmatter marker, and removals go to your system trash (recoverable) —
+  your own notes are never deleted, even under a same-named folder.
+
 ## Doctrine — what this plugin will and won't do
 
 Per `CLAUDE.md § Projection-as-stage`:

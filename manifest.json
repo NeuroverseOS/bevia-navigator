@@ -1,7 +1,7 @@
 {
   "id": "bevia-navigator",
   "name": "Bevia Navigator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minAppVersion": "1.5.0",
   "description": "Your notes, mapped. A side panel shows what the note you're reading connects to across your vault, and Bevia's map of your thinking syncs into a Bevia/ folder you can browse, link, and build on.",
   "author": "Bevia",

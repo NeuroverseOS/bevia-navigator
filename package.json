@@ -1,6 +1,6 @@
 {
   "name": "@bevia/obsidian-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Bevia Navigator \u2014 the cartographic overlay for Obsidian. Sits beside the note you're writing and projects Bevia's understanding of it (territories, landmarks, contributors) into a side panel. Source-immutable per CLAUDE.md \u00a7 Projection-as-stage doctrine.",
   "main": "main.js",
