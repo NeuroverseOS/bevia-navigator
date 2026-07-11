@@ -24,6 +24,18 @@ export interface BeviaNavigatorSettings {
   /** Whether the Navigator sidebar should auto-update on note
    *  change. Off = manual refresh button only. */
   autoUpdate: boolean;
+  /** OPT-IN: route Obsidian's core "new note location" to the user-owned
+   *  Bevia/5 Workspace folder. Default OFF — Bevia never silently rewrites
+   *  a core editor setting. When the user turns this off again, the prior
+   *  core config is restored from the two `prior*` fields below. */
+  routeNewNotes: boolean;
+  /** The user's core `newFileLocation` before Bevia overrode it (captured
+   *  once when routeNewNotes is first enabled; restored on disable).
+   *  `undefined` = never overridden; `null` = was unset. Not user-facing. */
+  priorNewFileLocation?: string | null;
+  /** The user's core `newFileFolderPath` before Bevia overrode it. Not
+   *  user-facing. */
+  priorNewFileFolderPath?: string | null;
   /** The Bevia web app URL (Control Tower / checkout). Distinct from
    *  baseUrl, which is the Supabase functions host. Used for the
    *  Discovery → "Activate my Living Atlas" → subscribe handoff. */
@@ -99,6 +111,7 @@ export const DEFAULT_SETTINGS: BeviaNavigatorSettings = {
   baseUrl: "https://qjxotoeviqlfazjcwask.supabase.co",
   token: "",
   autoUpdate: true,
+  routeNewNotes: false,
   appUrl: "https://bevia.co",
   syncAtlas: true,
   syncPollMinutes: 10,
@@ -318,6 +331,25 @@ export class BeviaNavigatorSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.autoUpdate = value;
             await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName("Send new notes to the Workspace folder")
+      .setDesc(
+        "Off by default. When on, Bevia changes Obsidian's core “Default location for " +
+          "new notes” to Bevia/5 Workspace, so new notes — including the empty ones " +
+          "Obsidian creates when you click an unresolved [[link]] — land in the user-owned " +
+          "Workspace instead of the vault root. Turning it off restores your previous setting.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.routeNewNotes)
+          .onChange(async (value) => {
+            this.plugin.settings.routeNewNotes = value;
+            await this.plugin.saveSettings();
+            if (value) await this.plugin.routeNewNotesToWorkspace();
+            else await this.plugin.restoreNewNotesLocation();
           }),
       );
 

@@ -299,15 +299,56 @@ async function pruneEmptyDirs(
     if (child instanceof TFolder) await pruneEmptyDirs(plugin, child.path);
   }
   try {
-    if (root.children.length === 0) await vault.delete(root, true);
+    // trash (recoverable), never permanent delete — a folder emptied by a
+    // mistaken reap must be recoverable too. `true` = OS/system trash.
+    if (root.children.length === 0) await vault.trash(root, true);
   } catch {
     // Best-effort — a folder that won't remove is left in place.
   }
 }
 
+/** True only when a file carries a Bevia authorship marker in its
+ *  frontmatter (`bevia_managed: true` or `bevia_generated: true`). The
+ *  server stamps every materialized note; the plugin stamps every
+ *  workspace scaffold. A file WITHOUT the marker is the user's own — even
+ *  when it happens to sit under a folder whose name matches a Bevia-managed
+ *  prefix (e.g. a pre-existing `Atlas/Territories/`) — and must never be
+ *  reaped. Reads Obsidian's metadata cache first (idiomatic, cheap); falls
+ *  back to a direct scan of the leading frontmatter block when the cache
+ *  hasn't indexed the file yet, so a cold cache never causes a user file to
+ *  be deleted. */
+async function isBeviaAuthored(
+  plugin: BeviaNavigatorPlugin,
+  file: TFile,
+): Promise<boolean> {
+  const fm = plugin.app.metadataCache.getFileCache(file)?.frontmatter as
+    | Record<string, unknown>
+    | undefined;
+  if (fm) {
+    return fm["bevia_managed"] === true || fm["bevia_generated"] === true;
+  }
+  // Cache miss — scan the leading YAML frontmatter block directly.
+  try {
+    const raw = await plugin.app.vault.cachedRead(file);
+    const m = raw.match(/^---\n([\s\S]*?)\n---/);
+    if (!m) return false;
+    return /^\s*bevia_(?:managed|generated)\s*:\s*true\s*$/m.test(m[1]);
+  } catch {
+    return false;
+  }
+}
+
 /** Reap Bevia-managed files that have no matching current envelope, then
  *  prune the folders left empty. Only ever touches MANAGED_PREFIXES — the
- *  user's own zones are never visited. Returns how many files were reaped. */
+ *  user's own zones are never visited. Returns how many files were reaped.
+ *
+ *  DATA-LOSS SAFETY (two guards):
+ *   1. Files are sent to the OS/system TRASH (`vault.trash`), never
+ *      permanently deleted — any mistaken reap is recoverable.
+ *   2. Only files Bevia actually AUTHORED are reaped (the `bevia_managed`
+ *      / `bevia_generated` frontmatter marker). A user's own note that
+ *      happens to live under a managed folder NAME is never touched —
+ *      sharing a prefix with Bevia's tree is not consent to be deleted. */
 async function reapOrphans(
   plugin: BeviaNavigatorPlugin,
   validPaths: Set<string>,
@@ -322,8 +363,14 @@ async function reapOrphans(
       // or a dotfile (e.g. the .bevia-managed.md markers, which are valid
       // envelopes anyway — this is belt-and-suspenders).
       if (!f.name.endsWith(".md") || f.name.startsWith(".")) continue;
+      // AUTHORSHIP GUARD: never reap a file Bevia didn't write, even under a
+      // managed prefix. Protects a user's pre-existing folder that shares a
+      // generic name (Atlas/Daily, Atlas/Territories, Atlas/Concepts, …).
+      if (!(await isBeviaAuthored(plugin, f))) continue;
       try {
-        await vault.delete(f);
+        // System trash, never permanent delete — a mistaken reap must be
+        // recoverable. `true` = OS trash where available.
+        await vault.trash(f, true);
         reaped++;
       } catch {
         // Best-effort — leave anything we can't remove.

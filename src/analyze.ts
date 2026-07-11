@@ -16,6 +16,7 @@ import {
   type BvState,
 } from "./v27";
 import { renderTwoDoorPanel } from "./two-door";
+import { isSafeVaultPath } from "./sync";
 
 const MAX_NOTES = 400; // ingest ceiling — matches the server; the real cost bound is the driver's total dollar budget
 const MIN_CHARS = 40;
@@ -481,6 +482,14 @@ class DiscoveryModal extends Modal {
       for (const f of files) {
         const path = (f.vault_path ?? "").replace(/^\/+/, "").trim();
         if (!path || !path.toLowerCase().endsWith(".md") || !f.body_md) continue;
+        // SOURCE IMMUTABILITY (audit B5): the server-returned vault_path is
+        // untrusted input, and this save path is reachable anonymously in the
+        // Discovery flow. Refuse anything that isn't a traversal-free path
+        // inside the Bevia/ managed tree — the SAME gate the Atlas sync uses
+        // (isSafeVaultPath). This guarantees the modify() below can only ever
+        // overwrite a file inside Bevia's own namespace, never a pre-existing
+        // note the plugin didn't author.
+        if (!isSafeVaultPath(path)) continue;
         await ensureFolders(path);
         const existing = vault.getAbstractFileByPath(path);
         if (existing instanceof TFile) await vault.modify(existing, f.body_md);
