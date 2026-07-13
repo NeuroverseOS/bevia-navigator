@@ -27,6 +27,7 @@
 // non-subscribed user simply gets nothing — no extra gate needed here.
 
 import { Notice, TFile, TFolder, requestUrl } from "obsidian";
+import { isLocalMode } from "./local";
 import type BeviaNavigatorPlugin from "./main";
 
 // Bevia-owned vault namespaces. Mirrors the desktop watcher's
@@ -182,6 +183,13 @@ async function fetchEnvelopes(
   baseUrl: string,
   token: string,
 ): Promise<PullResult> {
+  // Bevia Local (leg 2): the map arrives as files the desktop app writes
+  // into the vault — the plugin never pulls materialization, and no
+  // request may leave for a cloud host. Belt-and-suspenders with the
+  // syncAtlasOnce / startAtlasSync gates.
+  if (isLocalMode()) {
+    return { ok: false, envelopes: [], error: "local-mode" };
+  }
   // No `since` cursor (Phase 2 — one full-pull model): the server returns
   // the user's whole envelope set in one response, and the mirror needs all
   // of it to tell which on-disk files are orphans. An incremental cursor
@@ -393,6 +401,11 @@ export interface SyncResult {
 export async function syncAtlasOnce(
   plugin: BeviaNavigatorPlugin,
 ): Promise<SyncResult> {
+  // Bevia Local: no cloud pull, ever. The desktop app writes the map
+  // into the vault itself.
+  if (isLocalMode()) {
+    return { wrote: 0, reaped: 0, skipped: 0, error: "local-mode" };
+  }
   const baseUrl = plugin.settings.baseUrl?.replace(/\/+$/, "");
   const token = plugin.settings.token?.trim();
   if (!baseUrl || !token) {
@@ -478,6 +491,13 @@ export async function syncAtlasOnce(
 
 /** Manual command: sync now and report what landed. */
 export async function syncAtlasNow(plugin: BeviaNavigatorPlugin): Promise<void> {
+  if (isLocalMode()) {
+    new Notice(
+      "Bevia Local is on — your map arrives as files the desktop app writes into this vault. There's nothing to pull from the cloud.",
+      8000,
+    );
+    return;
+  }
   const token = plugin.settings.token?.trim();
   if (!token) {
     new Notice("Add your Bevia token in settings to bring your Atlas into this vault.");
@@ -506,6 +526,7 @@ async function fetchSyncSignal(
   baseUrl: string,
   token: string,
 ): Promise<string | null> {
+  if (isLocalMode()) return null; // leg 2: no cloud polling in Local mode
   try {
     const res = await requestUrl({
       url: `${baseUrl}/functions/v1/vault-sync-status`,
@@ -537,6 +558,11 @@ export interface AtlasSyncHandle {
  *  instead of waiting out the interval. Pull-not-push preserved: the web
  *  only sets a flag; this client polls it and pulls itself (ADR-0054). */
 export function startAtlasSync(plugin: BeviaNavigatorPlugin): AtlasSyncHandle {
+  // Bevia Local: the sync loop never starts — no full pulls, no 20s
+  // signal polls. Materialization is the desktop app's job.
+  if (isLocalMode()) {
+    return { stop: () => {} };
+  }
   if (!plugin.settings.syncAtlas || !plugin.settings.token?.trim()) {
     return { stop: () => {} };
   }

@@ -18,6 +18,8 @@
 // reaped (ADR-0192 — worksites are intake zones, not mirror zones).
 
 import { App, Notice, TFile, TFolder, requestUrl } from "obsidian";
+import { LOCAL_UNAVAILABLE } from "./errors";
+import { isLocalMode } from "./local";
 import type { BeviaClientConfig } from "./api";
 
 interface ResearchDossier {
@@ -60,6 +62,7 @@ function extractTerritoryId(app: App, file: TFile): string | null {
 }
 
 async function fetchDossier(config: BeviaClientConfig, territoryId: string): Promise<ResearchDossier> {
+  if (isLocalMode()) throw new Error(LOCAL_UNAVAILABLE); // leg 2: cloud-only
   if (!config.token) {
     throw new Error("Bevia token missing — open Settings → Bevia Navigator and paste your token.");
   }

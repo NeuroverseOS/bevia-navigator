@@ -46,8 +46,18 @@ function isBeviaOwned(path: string): boolean {
 export async function sendVaultToBevia(
   plugin: BeviaNavigatorPlugin,
 ): Promise<{ sent: number; skipped: number; batches: number }> {
-  const token = plugin.settings.token?.trim();
-  if (!token) {
+  const token = plugin.settings.token?.trim() ?? "";
+  if (plugin.settings.localMode) {
+    // Bevia Local: intake goes to the local engine (postVaultNotes
+    // reroutes to POST /intake/capture) — the cloud token is not needed,
+    // but the vault must be paired.
+    if (!plugin.settings.localToken?.trim()) {
+      new Notice(
+        "Bevia Local is on but this vault isn't paired yet — open Settings → Bevia Local and connect with the code from the desktop app.",
+      );
+      return { sent: 0, skipped: 0, batches: 0 };
+    }
+  } else if (!token) {
     new Notice("Bevia: paste your token in Settings → Bevia Navigator first.");
     return { sent: 0, skipped: 0, batches: 0 };
   }

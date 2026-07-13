@@ -47,6 +47,7 @@ import { thinkAboutActiveTerritory } from "./think";
 import { workOnActiveLandmark } from "./work";
 import { startAtlasSync, syncAtlasNow, type AtlasSyncHandle } from "./sync";
 import { GRAPH_RECIPES, applyGraphRecipe } from "./graph-recipes";
+import { setLocalRouting } from "./local";
 import { sendVaultToBevia } from "./sync-vault-intake";
 import { openVaultWritePreview } from "./first-run";
 import {
@@ -414,6 +415,10 @@ export default class BeviaNavigatorPlugin extends Plugin {
     this.rerenderHomeViews();
     this.atlasSync?.stop();
     this.atlasSync = null;
+    // Bevia Local (leg 2): no cloud sync loop, and no first-sync preview
+    // either — in Local mode the map arrives as files the desktop app
+    // writes into the vault; this plugin pulls nothing.
+    if (this.settings.localMode) return;
     // First-run gate (audit Finding 5.2): never auto-write into the vault
     // until the user has seen the one-screen "what Bevia writes & where"
     // preview. The modal's "Start syncing" sets firstSyncAck and calls
@@ -441,10 +446,27 @@ export default class BeviaNavigatorPlugin extends Plugin {
       stored.syncCatBehaviors = stored.syncCatInsights as boolean;
     }
     this.settings = { ...DEFAULT_SETTINGS, ...stored };
+    // Feed the Bevia Local routing seam before ANY network caller can
+    // run — leg 2 depends on this snapshot being current from the first
+    // call of the session.
+    this.applyLocalRouting();
   }
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+    // Keep the routing seam in lockstep with settings — no caller should
+    // ever act on a stale local-mode snapshot.
+    this.applyLocalRouting();
+  }
+
+  /** Push the current Bevia Local settings into the routing seam that
+   *  every network caller consults (local.ts). */
+  applyLocalRouting(): void {
+    setLocalRouting({
+      enabled: !!this.settings.localMode,
+      port: Number(this.settings.localPort) || 0,
+      token: this.settings.localToken ?? "",
+    });
   }
 
   /**

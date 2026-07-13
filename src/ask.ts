@@ -97,8 +97,17 @@ class AskMollyModal extends Modal {
     };
     // Librarian (grounded) plain; Consultant (forward) in the theme accent —
     // the same "this is the work-with-AI move" signal used elsewhere.
-    section("THE LIBRARIAN", res.librarian, false);
+    // Bevia Local degraded answers are the engine's deterministic grounded
+    // readout — label them for what they are, never as narration.
+    section(res.degraded ? "FROM YOUR MAP" : "THE LIBRARIAN", res.librarian, false);
     section("THE CONSULTANT", res.consultant, true);
+    if (res.degraded) {
+      const note = parent.createEl("p", {
+        text: "Answered straight from your map — no AI narration ran on this one.",
+      });
+      note.addClass("bv-u-color-text-muted");
+      note.addClass("bv-u-font-size-12_5px");
+    }
 
     if (res.evidence && res.evidence.length > 0) {
       const ev = parent.createEl("details");
@@ -115,8 +124,10 @@ class AskMollyModal extends Modal {
         row.addClass("bv-u-color-text-muted");
         row.addClass("bv-u-margin-5px-0");
         row.createEl("b", { text: e.label });
+        const similarity =
+          typeof e.similarity === "number" ? ` · similarity ${e.similarity.toFixed(2)}` : "";
         row.appendText(
-          ` — ${e.summary}${e.what_changed ? ` · what changed: ${e.what_changed}` : ""}`,
+          ` — ${e.summary}${e.what_changed ? ` · what changed: ${e.what_changed}` : ""}${similarity}`,
         );
       }
     }

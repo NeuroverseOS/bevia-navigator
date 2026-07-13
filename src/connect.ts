@@ -11,6 +11,7 @@
 // sync loop starts immediately.
 
 import { Modal, Notice, requestUrl } from "obsidian";
+import { isLocalMode } from "./local";
 import type BeviaNavigatorPlugin from "./main";
 import { v27Root, aperture, mono, serif, text, button } from "./v27";
 import { openVaultWritePreview } from "./first-run";
@@ -211,6 +212,15 @@ class ConnectModal extends Modal {
   }
 
   private async verify(): Promise<void> {
+    // Bevia Local (leg 2): verifying a cloud token is a cloud call, and no
+    // request may leave for a cloud host while Local mode is on.
+    if (isLocalMode()) {
+      new Notice(
+        "Bevia Local is on — this vault talks only to your local engine. Turn off Bevia Local in settings to connect a cloud account.",
+        8000,
+      );
+      return;
+    }
     const token = this.pasted.trim();
     if (!token) { new Notice("Paste your token first."); return; }
     this.state = "verifying";
