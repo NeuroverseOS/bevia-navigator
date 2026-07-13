@@ -10,6 +10,7 @@
 // coverage — so we never show "X of N notes"; we say "a representative sample."
 
 import { App, Modal, Notice, TFile, TFolder, requestUrl } from "obsidian";
+import { isLocalMode } from "./local";
 import type BeviaNavigatorPlugin from "./main";
 import {
   v27Root, aperture, mono, serif, text, button, territoryCard, readingAperture, dot,
@@ -77,6 +78,17 @@ function selectNotes(files: TFile[]): TFile[] {
 }
 
 export async function analyzeVault(plugin: BeviaNavigatorPlugin): Promise<void> {
+  // Bevia Local (leg 2): the Discovery preview is a cloud run, and no
+  // request may leave for a cloud host while Local mode is on. The modal's
+  // two network calls are unreachable without this entry point, but each
+  // is also guarded below.
+  if (isLocalMode()) {
+    new Notice(
+      "Bevia Local is on — your map is built on your machine, and the cloud vault preview is not in Bevia Local yet.",
+      8000,
+    );
+    return;
+  }
   // Connected users don't belong on the free Discovery funnel — their
   // live Atlas already maps everything continuously and for real.
   // "Analyze My Vault" is the anonymous one-shot preview for people who
@@ -296,6 +308,7 @@ class DiscoveryModal extends Modal {
    *  survives renders; onClose clears it. Transient poll failures are
    *  ignored — the next tick retries. */
   private pollStatus(sessionId: string): void {
+    if (isLocalMode()) return; // leg 2 belt-and-suspenders — never poll the cloud
     this.pollTimer = window.setTimeout(() => {
       void (async () => {
         try {
@@ -593,6 +606,13 @@ class DiscoveryModal extends Modal {
       notes.push({ path: f.path, title: f.basename, body, mtime: f.stat.mtime });
     }
 
+    if (isLocalMode()) {
+      // leg 2 belt-and-suspenders — analyzeVault already refuses entry.
+      new Notice("Bevia Local is on — the cloud vault preview is not in Bevia Local yet.", 8000);
+      this.state = "invitation";
+      this.render();
+      return;
+    }
     try {
       const res = await requestUrl({
         url: `${this.baseUrl}/functions/v1/instant-cartography`,

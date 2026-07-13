@@ -47,6 +47,7 @@ import { thinkAboutActiveTerritory } from "./think";
 import { workOnActiveLandmark } from "./work";
 import { startAtlasSync, syncAtlasNow, type AtlasSyncHandle } from "./sync";
 import { GRAPH_RECIPES, applyGraphRecipe } from "./graph-recipes";
+import { setLocalRouting } from "./local";
 import { sendVaultToBevia } from "./sync-vault-intake";
 import { openVaultWritePreview } from "./first-run";
 import {
@@ -105,9 +106,12 @@ export default class BeviaNavigatorPlugin extends Plugin {
     await this.loadSettings();
 
     // New notes — including the empty ones Obsidian makes when you click an
-    // unresolved [[link]] — belong in the user-owned Workspace, never loose
-    // in the vault root or inside Bevia's managed folders. Enforce it.
-    void this.routeNewNotesToWorkspace();
+    // unresolved [[link]] — can be routed into the user-owned Workspace so
+    // they never land loose in the vault root or inside Bevia's managed
+    // folders. This rewrites Obsidian's CORE "new note location" config, so
+    // it is strictly OPT-IN (default OFF) — Bevia never silently changes a
+    // core editor setting. Only runs when the user enabled it in settings.
+    if (this.settings.routeNewNotes) void this.routeNewNotesToWorkspace();
 
     // Register the sidebar views.
     this.registerView(
@@ -411,6 +415,10 @@ export default class BeviaNavigatorPlugin extends Plugin {
     this.rerenderHomeViews();
     this.atlasSync?.stop();
     this.atlasSync = null;
+    // Bevia Local (leg 2): no cloud sync loop, and no first-sync preview
+    // either — in Local mode the map arrives as files the desktop app
+    // writes into the vault; this plugin pulls nothing.
+    if (this.settings.localMode) return;
     // First-run gate (audit Finding 5.2): never auto-write into the vault
     // until the user has seen the one-screen "what Bevia writes & where"
     // preview. The modal's "Start syncing" sets firstSyncAck and calls
@@ -438,10 +446,27 @@ export default class BeviaNavigatorPlugin extends Plugin {
       stored.syncCatBehaviors = stored.syncCatInsights as boolean;
     }
     this.settings = { ...DEFAULT_SETTINGS, ...stored };
+    // Feed the Bevia Local routing seam before ANY network caller can
+    // run — leg 2 depends on this snapshot being current from the first
+    // call of the session.
+    this.applyLocalRouting();
   }
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+    // Keep the routing seam in lockstep with settings — no caller should
+    // ever act on a stale local-mode snapshot.
+    this.applyLocalRouting();
+  }
+
+  /** Push the current Bevia Local settings into the routing seam that
+   *  every network caller consults (local.ts). */
+  applyLocalRouting(): void {
+    setLocalRouting({
+      enabled: !!this.settings.localMode,
+      port: Number(this.settings.localPort) || 0,
+      token: this.settings.localToken ?? "",
+    });
   }
 
   /**
@@ -449,24 +474,64 @@ export default class BeviaNavigatorPlugin extends Plugin {
    * (Bevia/5 Workspace). New notes — including the empty ones Obsidian
    * creates when you click an unresolved [[link]] — then land in the one
    * folder Bevia never writes to or reaps, instead of loose in the vault
-   * root or inside the managed Map/Ideas/Today folders. Best-effort: uses
-   * Obsidian's internal config API, so every step is guarded.
+   * root or inside the managed Map/Ideas/Today folders.
+   *
+   * OPT-IN ONLY: this rewrites Obsidian's CORE config, so it runs solely
+   * when the user turned on the "Send new notes to the Workspace folder"
+   * setting. The user's prior choice is captured once so it can be
+   * restored when the setting is turned back off (see
+   * restoreNewNotesLocation). Best-effort: uses Obsidian's internal config
+   * API, so every step is guarded.
    */
-  private async routeNewNotesToWorkspace(): Promise<void> {
+  async routeNewNotesToWorkspace(): Promise<void> {
     const WORKSPACE = "Bevia/5 Workspace";
     try {
       if (!this.app.vault.getAbstractFileByPath(WORKSPACE)) {
         await this.app.vault.createFolder(WORKSPACE).catch(() => {});
       }
       const vault = this.app.vault as unknown as {
+        getConfig?(key: string): unknown;
         setConfig?(key: string, value: unknown): void;
       };
-      if (typeof vault.setConfig === "function") {
-        vault.setConfig("newFileLocation", "folder");
-        vault.setConfig("newFileFolderPath", WORKSPACE);
+      if (typeof vault.setConfig !== "function") return;
+      // Remember the user's prior choice ONCE so disabling can restore it.
+      if (
+        this.settings.priorNewFileLocation === undefined &&
+        typeof vault.getConfig === "function"
+      ) {
+        const loc = vault.getConfig("newFileLocation");
+        const dir = vault.getConfig("newFileFolderPath");
+        this.settings.priorNewFileLocation = typeof loc === "string" ? loc : null;
+        this.settings.priorNewFileFolderPath = typeof dir === "string" ? dir : null;
+        await this.saveSettings();
       }
+      vault.setConfig("newFileLocation", "folder");
+      vault.setConfig("newFileFolderPath", WORKSPACE);
     } catch (e) {
       console.warn("[Bevia] could not route new notes to Workspace:", e);
+    }
+  }
+
+  /** Undo routeNewNotesToWorkspace — restore the user's prior core "new
+   *  note location" config. Called when the setting is turned off, so
+   *  Bevia leaves the editor exactly as it found it. */
+  async restoreNewNotesLocation(): Promise<void> {
+    try {
+      const vault = this.app.vault as unknown as {
+        setConfig?(key: string, value: unknown): void;
+      };
+      if (typeof vault.setConfig !== "function") return;
+      if (this.settings.priorNewFileLocation != null) {
+        vault.setConfig("newFileLocation", this.settings.priorNewFileLocation);
+      }
+      if (this.settings.priorNewFileFolderPath != null) {
+        vault.setConfig("newFileFolderPath", this.settings.priorNewFileFolderPath);
+      }
+      this.settings.priorNewFileLocation = undefined;
+      this.settings.priorNewFileFolderPath = undefined;
+      await this.saveSettings();
+    } catch (e) {
+      console.warn("[Bevia] could not restore new-note location:", e);
     }
   }
 

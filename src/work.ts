@@ -12,6 +12,8 @@
 // forever; it sits outside the sync mirror's MANAGED_PREFIXES.
 
 import { App, Notice, TFile, TFolder, requestUrl } from "obsidian";
+import { LOCAL_UNAVAILABLE } from "./errors";
+import { isLocalMode } from "./local";
 import type { BeviaClientConfig } from "./api";
 
 interface ReactivationBundle {
@@ -51,6 +53,7 @@ function extractLandmarkId(app: App, file: TFile): string | null {
 }
 
 async function fetchBundle(config: BeviaClientConfig, landmarkId: string): Promise<ReactivationBundle> {
+  if (isLocalMode()) throw new Error(LOCAL_UNAVAILABLE); // leg 2: cloud-only
   if (!config.token) {
     throw new Error("Bevia token missing — open Settings → Bevia Navigator and paste your token.");
   }

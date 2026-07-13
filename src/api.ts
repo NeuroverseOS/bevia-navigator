@@ -6,6 +6,26 @@
 
 import { requestUrl, type RequestUrlParam } from "obsidian";
 import type { ConnectionDensity } from "./sync";
+import { BeviaApiError, LocalModeUnavailableError } from "./errors";
+import { isLocalMode, postLocalCapture, postLocalQuery } from "./local";
+
+// Re-export so existing `import { BeviaApiError } from "./api"` sites keep
+// working after the class moved to errors.ts (see errors.ts header).
+export { BeviaApiError, LocalModeUnavailableError } from "./errors";
+
+// ─── Bevia Local routing seam (matrix leg 2) ───────────────────────────
+//
+// While Bevia Local is on, NOTHING in this file may reach the cloud:
+//   - vault intake reroutes to the local engine's POST /intake/capture
+//   - the ask path (fetchMollyAsk) reroutes to the local POST /query
+//   - every other call throws LocalModeUnavailableError, whose message is
+//     the one honest user-facing line: "Not in Bevia Local yet."
+// No silent cloud fallback exists on any branch.
+
+/** Refuse a cloud-only call while Bevia Local is on. */
+function assertCloudAllowed(): void {
+  if (isLocalMode()) throw new LocalModeUnavailableError();
+}
 
 export type AttributionSource = "declared" | "inferred" | "unresolved";
 export type EntityKind =
@@ -57,12 +77,6 @@ export interface BeviaClientConfig {
   token: string;
 }
 
-export class BeviaApiError extends Error {
-  constructor(message: string, public status: number) {
-    super(message);
-    this.name = "BeviaApiError";
-  }
-}
 
 /** Calls the Navigator-facing EF that returns territories, landmarks,
  *  and contributors matching a note. Pure projection read; the call
@@ -75,6 +89,7 @@ export async function fetchNoteContext(
   config: BeviaClientConfig,
   body: { title: string; excerpt?: string; vault_path?: string },
 ): Promise<NoteContextResponse> {
+  assertCloudAllowed(); // no local /note-context endpoint yet (leg 2)
   if (!config.token) {
     throw new BeviaApiError(
       "Bevia token missing — open Settings → Bevia Navigator and paste your token.",
@@ -132,10 +147,59 @@ export interface VaultIntakeResponse {
  *  become substrate. The call READS the vault and POSTs; it never writes
  *  the vault. The server enforces the ADR-0203 guards (skip Atlas/, dedup
  *  key) regardless of what we send — this is intake, not projection. */
+/** Bevia Local leg of vault intake: each note becomes one capture against
+ *  the engine's POST /intake/capture, shaped to the CaptureBody contract
+ *  (capture-normalizer.ts). Field mapping:
+ *
+ *    thread_id       ← `vault:${vault_id}:${path}` — stable per note, so the
+ *                      engine's own source_ref stamp (`${thread_id}::turn::0`)
+ *                      dedupes re-sends; an edited note upserts the same row.
+ *    conversation    ← ONE turn: { speaker: "user", text: note content
+ *                      (title prepended as a first line when it isn't already
+ *                      there), emitted_at: note mtime ISO (the note's real
+ *                      "when"; the normalizer resolves occurred_at from it) }
+ *    captured_at     ← now (fallback event time per the normalizer)
+ *    source_platform ← "obsidian"
+ *    source_kind     ← "vault_note" — the same source_kind the cloud
+ *                      /vault-intake writes, via the normalizer's documented
+ *                      cloud-parity override
+ *    source_url / envelope — omitted (nothing invented)
+ */
+async function postVaultNotesLocal(
+  body: { vault_id: string; notes: VaultIntakeNote[] },
+): Promise<VaultIntakeResponse> {
+  let moments = 0;
+  const skipped: string[] = [];
+  const capturedAt = new Date().toISOString();
+  for (const note of body.notes) {
+    const raw = note.content_text?.trim() ?? "";
+    if (!raw) {
+      skipped.push(`empty:${note.path}`);
+      continue;
+    }
+    const title = note.title?.trim() ?? "";
+    const text =
+      title && !raw.startsWith(title) && !raw.startsWith(`# ${title}`)
+        ? `${title}\n\n${raw}`
+        : raw;
+    const res = await postLocalCapture({
+      thread_id: `vault:${body.vault_id}:${note.path}`,
+      conversation: [{ speaker: "user", text, emitted_at: note.occurred_at }],
+      source_platform: "obsidian",
+      source_kind: "vault_note",
+      captured_at: capturedAt,
+    });
+    moments += res.written;
+    if (res.written === 0) skipped.push(note.path);
+  }
+  return { ok: true, moments, skipped, vault_id: body.vault_id };
+}
+
 export async function postVaultNotes(
   config: BeviaClientConfig,
   body: { vault_id: string; notes: VaultIntakeNote[] },
 ): Promise<VaultIntakeResponse> {
+  if (isLocalMode()) return postVaultNotesLocal(body);
   if (!config.token) {
     throw new BeviaApiError(
       "Bevia token missing — open Settings → Bevia Navigator and paste your token.",
@@ -225,6 +289,8 @@ export async function fetchQuery(
   config: BeviaClientConfig,
   request: QueryRequest,
 ): Promise<QueryResponse> {
+  assertCloudAllowed(); // typed query-run has no local endpoint yet (leg 2);
+  // the local ask path is fetchMollyAsk → POST /query
   if (!config.token) {
     throw new BeviaApiError(
       "Bevia token missing — open Settings → Bevia Navigator and paste your token.",
@@ -346,6 +412,10 @@ async function postBevia<T>(
   fn: string,
   body: unknown,
 ): Promise<T> {
+  // Covers every consumer of this helper: navigator-orientation,
+  // navigator-directions, set-territory-attention, set-territory-share,
+  // projection-scope, navigator-games. None has a local endpoint yet.
+  assertCloudAllowed();
   if (!config.token) {
     throw new BeviaApiError(
       "Bevia token missing — open Settings → Bevia Navigator and paste your token.",
@@ -483,6 +553,9 @@ export interface MollyAskEvidence {
   recurrence_count: number;
   last_seen_at: string;
   what_changed: string | null;
+  /** Bevia Local only: how strongly this territory matched the question
+   *  (0..1). An ordering signal, never a verdict. Cloud answers omit it. */
+  similarity?: number;
 }
 
 export interface MollyAskResponse {
@@ -494,6 +567,12 @@ export interface MollyAskResponse {
   consultant: string;
   /** The territories the answer was grounded in (drill-down). */
   evidence: MollyAskEvidence[];
+  /** Bevia Local only: true when no AI narration ran — `librarian` then
+   *  carries the engine's deterministic grounded readout and `consultant`
+   *  is empty. Render it as-is; never pretend it was narrated. */
+  degraded?: boolean;
+  /** Bevia Local only: how the matches were found (embedding | keyword). */
+  method?: string;
 }
 
 /** Ask Molly a question. The Librarian retrieves from the user's own map
@@ -503,6 +582,31 @@ export async function fetchMollyAsk(
   config: BeviaClientConfig,
   message: string,
 ): Promise<MollyAskResponse> {
+  if (isLocalMode()) {
+    // Bevia Local: the ask runs against the local engine's POST /query.
+    // Same two-role shape; evidence rows carry similarity instead of the
+    // cloud's what_changed layer.
+    const a = await postLocalQuery(message);
+    if (!a.ok) {
+      throw new BeviaApiError(a.error ?? "Your local engine couldn't answer that one.", 500);
+    }
+    return {
+      ok: true,
+      question: a.question,
+      librarian: a.librarian,
+      consultant: a.consultant,
+      degraded: a.degraded,
+      method: a.method,
+      evidence: (a.evidence ?? []).map((e) => ({
+        label: e.label,
+        summary: e.summary,
+        recurrence_count: e.recurrence_count,
+        last_seen_at: e.last_seen_at ?? "",
+        what_changed: null,
+        similarity: e.similarity,
+      })),
+    };
+  }
   if (!config.token) {
     throw new BeviaApiError(
       "Bevia token missing — open Settings → Bevia Navigator and paste your token.",

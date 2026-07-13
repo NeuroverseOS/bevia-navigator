@@ -6,6 +6,7 @@
 
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type BeviaNavigatorPlugin from "./main";
+import { pairWithLocalEngine } from "./local";
 import { openConnectModal } from "./connect";
 import { renderTwoDoorPanel } from "./two-door";
 import type { ConnectionDensity } from "./sync";
@@ -24,6 +25,18 @@ export interface BeviaNavigatorSettings {
   /** Whether the Navigator sidebar should auto-update on note
    *  change. Off = manual refresh button only. */
   autoUpdate: boolean;
+  /** OPT-IN: route Obsidian's core "new note location" to the user-owned
+   *  Bevia/5 Workspace folder. Default OFF — Bevia never silently rewrites
+   *  a core editor setting. When the user turns this off again, the prior
+   *  core config is restored from the two `prior*` fields below. */
+  routeNewNotes: boolean;
+  /** The user's core `newFileLocation` before Bevia overrode it (captured
+   *  once when routeNewNotes is first enabled; restored on disable).
+   *  `undefined` = never overridden; `null` = was unset. Not user-facing. */
+  priorNewFileLocation?: string | null;
+  /** The user's core `newFileFolderPath` before Bevia overrode it. Not
+   *  user-facing. */
+  priorNewFileFolderPath?: string | null;
   /** The Bevia web app URL (Control Tower / checkout). Distinct from
    *  baseUrl, which is the Supabase functions host. Used for the
    *  Discovery → "Activate my Living Atlas" → subscribe handoff. */
@@ -93,12 +106,26 @@ export interface BeviaNavigatorSettings {
   syncCatIdeas: boolean;
   /** Readings about how you work — the Mirror (3 You family). */
   syncCatBehaviors: boolean;
+
+  // ── Bevia Local (pass/fail matrix leg 2) ───────────────────────────
+  /** When on, the plugin talks ONLY to the local engine at 127.0.0.1 —
+   *  intake and Ask go local; cloud-only features say so honestly; zero
+   *  requests leave for any cloud host. */
+  localMode: boolean;
+  /** The local engine's port, from the desktop app's Pair a sensor screen. */
+  localPort: number;
+  /** The bearer token /pair issued to this vault. Per-vault secret;
+   *  not user-facing. Empty = not paired. */
+  localToken: string;
+  /** The sensor id /pair returned. Display/debug only; not user-facing. */
+  localSensorId?: string;
 }
 
 export const DEFAULT_SETTINGS: BeviaNavigatorSettings = {
   baseUrl: "https://qjxotoeviqlfazjcwask.supabase.co",
   token: "",
   autoUpdate: true,
+  routeNewNotes: false,
   appUrl: "https://bevia.co",
   syncAtlas: true,
   syncPollMinutes: 10,
@@ -122,6 +149,9 @@ export const DEFAULT_SETTINGS: BeviaNavigatorSettings = {
   syncCatInsights: true,
   syncCatIdeas: true,
   syncCatBehaviors: true,
+  localMode: false,
+  localPort: 0,
+  localToken: "",
 };
 
 export class BeviaNavigatorSettingTab extends PluginSettingTab {
@@ -144,6 +174,8 @@ export class BeviaNavigatorSettingTab extends PluginSettingTab {
         "territories your writing connects to, landmarks it touches, contributors who built it with you. " +
         "Bevia never modifies your notes; the sidebar is rendered alongside.",
     );
+
+    this.renderBeviaLocal(containerEl);
 
     new Setting(containerEl)
       .setName("Bevia URL")
@@ -321,12 +353,167 @@ export class BeviaNavigatorSettingTab extends PluginSettingTab {
           }),
       );
 
+    new Setting(containerEl)
+      .setName("Send new notes to the Workspace folder")
+      .setDesc(
+        "Off by default. When on, Bevia changes Obsidian's core “Default location for " +
+          "new notes” to Bevia/5 Workspace, so new notes — including the empty ones " +
+          "Obsidian creates when you click an unresolved [[link]] — land in the user-owned " +
+          "Workspace instead of the vault root. Turning it off restores your previous setting.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.routeNewNotes)
+          .onChange(async (value) => {
+            this.plugin.settings.routeNewNotes = value;
+            await this.plugin.saveSettings();
+            if (value) await this.plugin.routeNewNotesToWorkspace();
+            else await this.plugin.restoreNewNotesLocation();
+          }),
+      );
+
     const link = containerEl.createEl("p");
     link.setText(
       "About sovereignty: Bevia reads your active note (title + first paragraph) " +
         "and asks its own substrate what the note connects to. Nothing in your vault is modified. " +
         "Stop the connection any time by clearing the token above.",
     );
+  }
+
+  /** "Bevia Local" — run everything against the engine on this machine.
+   *  While the toggle is on, the plugin makes no cloud requests at all:
+   *  your notes and questions go to 127.0.0.1 and nowhere else, and the
+   *  map arrives as files the desktop app writes into the vault.
+   *  Cloud-only features answer with one honest line instead of calling
+   *  out ("Not in Bevia Local yet."). */
+  private renderBeviaLocal(containerEl: HTMLElement): void {
+    const s = this.plugin.settings;
+    const paired = !!s.localToken?.trim();
+
+    containerEl.createEl("h3", { text: "Bevia Local" });
+    const desc = containerEl.createEl("p");
+    desc.setText(
+      "Run Bevia on your own machine. When Bevia Local is on, this plugin talks only to the " +
+        "local engine at 127.0.0.1 — nothing is sent to the cloud. Your map arrives as files " +
+        "the desktop app writes into this vault. Features that only exist in the cloud say so " +
+        "instead of quietly reaching out.",
+    );
+
+    const status = containerEl.createEl("p");
+    status.addClass("bv-u-color-text-muted");
+    status.setText(
+      s.localMode
+        ? paired
+          ? `Bevia Local is on and this vault is paired (port ${s.localPort}). No cloud requests leave this machine.`
+          : "Bevia Local is on but this vault isn't paired yet — enter the port and code from the desktop app below. Nothing goes to the cloud either way."
+        : paired
+          ? "Paired with a local engine, but Bevia Local is off — the plugin is talking to the cloud right now."
+          : "Off — the plugin talks to your Bevia cloud account.",
+    );
+
+    new Setting(containerEl)
+      .setName("Use Bevia Local")
+      .setDesc(
+        "Send your notes and questions to the local engine instead of the cloud. " +
+          "While this is on, the plugin makes no cloud requests at all.",
+      )
+      .addToggle((toggle) =>
+        toggle.setValue(s.localMode).onChange(async (value) => {
+          s.localMode = value;
+          await this.plugin.saveSettings();
+          this.plugin.applyLocalRouting();
+          // Stop (or resume) the cloud Atlas sync loop to match the mode.
+          this.plugin.restartAtlasSync();
+          this.display();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName("Engine port")
+      .setDesc("The port shown on the desktop app's Pair a sensor screen.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Port from the desktop app")
+          .setValue(s.localPort > 0 ? String(s.localPort) : "")
+          .onChange(async (value) => {
+            const n = parseInt(value.trim(), 10);
+            s.localPort = Number.isFinite(n) && n > 0 && n <= 65535 ? n : 0;
+            await this.plugin.saveSettings();
+            this.plugin.applyLocalRouting();
+          }),
+      );
+
+    let pairingCode = "";
+    new Setting(containerEl)
+      .setName("Pairing code")
+      .setDesc(
+        "Open Pair a sensor in the desktop app, enter the code it shows, then press Connect.",
+      )
+      .addText((text) => {
+        text.setPlaceholder("Code from the desktop app").onChange((value) => {
+          pairingCode = value.trim();
+        });
+      })
+      .addButton((btn) =>
+        btn
+          .setButtonText("Connect")
+          .setCta()
+          .onClick(async () => {
+            if (!s.localPort) {
+              new Notice("Enter the engine port first — it's on the desktop app's Pair a sensor screen.");
+              return;
+            }
+            if (!pairingCode) {
+              new Notice("Enter the pairing code from the desktop app.");
+              return;
+            }
+            btn.setDisabled(true);
+            try {
+              const outcome = await pairWithLocalEngine(
+                s.localPort,
+                pairingCode,
+                `Obsidian — ${this.app.vault.getName()}`,
+              );
+              if (!outcome.ok) {
+                new Notice(outcome.message, 8000);
+                return;
+              }
+              s.localToken = outcome.token;
+              s.localSensorId = outcome.sensor_id;
+              // Connecting IS the user's explicit choice to go local.
+              s.localMode = true;
+              await this.plugin.saveSettings();
+              this.plugin.applyLocalRouting();
+              this.plugin.restartAtlasSync();
+              new Notice("Connected to Bevia Local — this vault now talks only to your local engine.");
+              this.display();
+            } finally {
+              btn.setDisabled(false);
+            }
+          }),
+      );
+
+    if (paired) {
+      new Setting(containerEl)
+        .setName("Disconnect from Bevia Local")
+        .setDesc(
+          "Forget this vault's pairing. Bevia Local stays on — with no cloud fallback — " +
+            "until you turn the toggle off yourself.",
+        )
+        .addButton((btn) =>
+          btn
+            .setButtonText("Disconnect")
+            .setWarning()
+            .onClick(async () => {
+              s.localToken = "";
+              s.localSensorId = undefined;
+              await this.plugin.saveSettings();
+              this.plugin.applyLocalRouting();
+              new Notice("Disconnected from the local engine.");
+              this.display();
+            }),
+        );
+    }
   }
 
   /** "Choose what syncs" — the projection-control panel (Build C). The

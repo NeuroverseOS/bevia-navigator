@@ -13,6 +13,38 @@ The cybernetic loop closes at *source*: you write → Bevia notices → Bevia su
 
 That's the Navigator. It's not a dashboard about your notes. It's a map wrapping around the specific place you're currently standing.
 
+## Disclosures — network use, account, and payment
+
+Please read before installing:
+
+- **Network use.** This plugin sends data over the network to a remote
+  Bevia server. It contacts **only** the host configured in the **Bevia
+  URL** setting — by default `https://qjxotoeviqlfazjcwask.supabase.co`
+  (Bevia's hosted Supabase Edge Functions) — and the Bevia web app at
+  `https://bevia.co`. It makes **no** other network calls: no telemetry,
+  no third-party analytics, no ads. What is uploaded to each endpoint is
+  itemized in [Network use](#network-use) below.
+- **Bevia Local.** With the **Bevia Local** setting enabled, the plugin
+  talks **only** to a Bevia engine running on your own machine at
+  `http://127.0.0.1:<port>` — pairing, note intake, and Ask. While Local
+  mode is on, **no requests leave your machine**: cloud-only features
+  refuse with "Not in Bevia Local yet." instead of calling out, and your
+  map arrives as files the desktop app writes into the vault.
+- **Account required.** The core features (the Navigator side panel, Ask,
+  and Living Atlas vault sync) require a **Bevia account**. You paste an
+  access token from the Bevia web app; without a valid token these
+  features do nothing.
+- **Paid service.** A Bevia account is a **paid subscription** (see
+  <https://bevia.co/pricing>). This plugin is a client for that hosted
+  service — it is free to install, but the service it connects to is not.
+  The one exception is the free **“Analyze my vault”** Discovery preview,
+  which runs **anonymously with no account and no token**.
+- **What Bevia writes.** Bevia only writes inside its own `Bevia/` folder.
+  It never edits your existing notes. Vault sync can remove Bevia-authored
+  notes it no longer recognizes, but only files carrying a Bevia
+  frontmatter marker, and removals go to your system trash (recoverable) —
+  your own notes are never deleted, even under a same-named folder.
+
 ## Doctrine — what this plugin will and won't do
 
 Per `CLAUDE.md § Projection-as-stage`:
@@ -62,6 +94,24 @@ features require a paid Bevia account (the token gates them). The free
 "Analyze my vault" Discovery preview works with **no account** and no
 token. See <https://bevia.co/pricing>.
 
+### Bevia Local — localhost only
+
+When **Bevia Local** is on (Settings → Bevia Local), none of the cloud
+endpoints above are called. The plugin talks only to your local engine
+at `http://127.0.0.1:<port>`:
+
+| Local endpoint | When | What is sent |
+|---|---|---|
+| `/pair` | You press Connect with the desktop app's pairing code | The one-time code and this vault's name |
+| `/intake/capture` | "Send my vault to Bevia (intake)" | The full body text of the notes being ingested — to your own machine only |
+| `/query` | You use Ask | Your question |
+
+Everything else (Navigator context, saved queries, Atlas cloud sync,
+Discovery preview, territory/landmark reads, control settings) is not
+in Bevia Local yet and says so instead of falling back to the cloud.
+Materialization is written into the vault by the desktop app; the
+plugin downloads nothing.
+
 ## Install (manual, pre-community-plugin)
 
 1. Build: `npm install && npm run build` from this directory.
@@ -78,6 +128,8 @@ token. See <https://bevia.co/pricing>.
 | **Bevia URL** | Your Bevia instance. Defaults to production. Override for self-host or staging. |
 | **Bevia token** | Paste from `Bevia → Account → Connect Desktop & MCP`. Stored in vault config; treated as a secret. |
 | **Auto-update on note change** | When on, the sidebar refreshes whenever you open a different note. Turn off for manual refresh only. |
+| **Use Bevia Local** | Route intake and Ask to the engine on your machine (`127.0.0.1`) and make no cloud requests at all. |
+| **Engine port / Pairing code** | From the desktop app's *Pair a sensor* screen. Connect once; the engine issues this vault its own token. |
 
 ## Roadmap
 
