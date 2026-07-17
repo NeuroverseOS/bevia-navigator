@@ -176,8 +176,8 @@ class DiscoveryModal extends Modal {
     apWrap.addClass("bv-u-margin-bottom-20px");
     aperture(apWrap, { size: 46, stroke: 1.3, color: "var(--bv-strengthening-dot)" });
     mono(card, "Analyze my vault · free · once", { size: 9, track: 0.16, dim: true, block: true }).addClass("bv-u-margin-bottom-14px");
-    serif(card, "See the shape of what you've been thinking about.", { size: 24, weight: 400, lh: 1.2 }).addClass("bv-u-margin-bottom-14px");
-    const sub = text(card, "Bevia reads a representative sample of your vault and shows you the territories you keep returning to.", { size: 13.5, color: "var(--bv-ink-soft)", lh: 1.55, maxWidth: 330 });
+    serif(card, "The links you didn't have time to make.", { size: 24, weight: 400, lh: 1.2 }).addClass("bv-u-margin-bottom-14px");
+    const sub = text(card, "Bevia reads a representative sample of your vault and builds a living mind map from it \u2014 finding the connections between your notes, adding to the links you already made, and writing pattern readings your AI can pick up and act on.", { size: 13.5, color: "var(--bv-ink-soft)", lh: 1.55, maxWidth: 330 });
     sub.addClass("bv-u-margin-0-auto-24px");
     const cta = button(card, "Analyze my vault", { full: true, onClick: () => void this.runAnalysis() });
     cta.addClass("bv-u-margin-bottom-12px");
@@ -189,8 +189,8 @@ class DiscoveryModal extends Modal {
     keyWrap.addClass("bv-u-text-align-left");
     keyWrap.addClass("bv-u-padding-11px-13px");
     keyWrap.addClass("bv-u-margin-bottom-16px");
-    mono(keyWrap, "Have a Google AI key? Read the whole vault", { size: 9, track: 0.14, dim: true, block: true }).addClass("bv-u-margin-bottom-7px");
-    const keyInput = keyWrap.createEl("input", { type: "password", placeholder: "Paste your Google AI key (optional) — unlimited, on your key" });
+    mono(keyWrap, "Have an AI key? Read the whole vault \u2014 any provider", { size: 9, track: 0.14, dim: true, block: true }).addClass("bv-u-margin-bottom-7px");
+    const keyInput = keyWrap.createEl("input", { type: "password", placeholder: "Paste any AI key (optional) — Gemini, OpenAI, Claude, Grok, DeepSeek, Mistral" });
     keyInput.addClass("bv-u-width-100");
     keyInput.style.width = "100%";
     keyInput.style.boxSizing = "border-box";
@@ -212,7 +212,7 @@ class DiscoveryModal extends Modal {
     estEl.addClass("bv-u-margin-top-6px");
     const paintEstimate = (): void => {
       estEl.setText(this.byokKey.length > 0
-        ? `Your vault: ${noteCount} notes, ~${charsLabel} characters — about $${estUsd.toFixed(2)} on your key to read all of it. You pay Google directly; nothing to us. The lowest-cost model tier is plenty — Bevia asks small, structured questions.`
+        ? `Your vault: ${noteCount} notes, ~${charsLabel} characters — about $${estUsd.toFixed(2)} on your key to read all of it. You pay your AI provider directly; nothing to us. The lowest-cost model tier is plenty — Bevia asks small, structured questions.`
         : `Free preview reads a sample. Paste your key to read all ${noteCount} notes — we'll show the price first. A free-tier key works; no big model needed.`);
     };
     paintEstimate();
@@ -618,7 +618,7 @@ class DiscoveryModal extends Modal {
         url: `${this.baseUrl}/functions/v1/instant-cartography`,
         method: "POST",
         contentType: "application/json",
-        body: JSON.stringify({ notes, ...(byok ? { byok_gemini_key: this.byokKey } : {}) }),
+        body: JSON.stringify({ notes, ...(byok ? { byok_ai_key: this.byokKey } : {}) }),
         throw: false,
       });
       if (res.status < 200 || res.status >= 300) {

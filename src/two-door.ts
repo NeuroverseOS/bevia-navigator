@@ -1,7 +1,7 @@
-// Bevia — the two-door exit panel (Bevia Local spec §12.4).
+// Bevia — the exit panel (Bevia Local spec §12.4; ONE door since
+// 2026-07-17 — "we are only selling Local, not Cloud").
 //
-// Every place the plugin used to dead-end into a single "create an
-// account" CTA now exits through TWO doors:
+// Every close in the plugin exits through the same panel:
 //
 //   Own it — Bevia Local · $15 once, launch price (list $30) · runs on
 //   this machine · your data never leaves. Not purchasable yet, so the
@@ -72,26 +72,19 @@ export function renderTwoDoorPanel(
     return d;
   };
 
-  // Door 1 — Own it. Honest copy: Local isn't purchasable yet, hence
-  // "almost here" — the CTA is a learn-more, never a fake buy button.
+  // ONE door (founder decision 2026-07-17: "we are only selling Local,
+  // not Cloud"). Purchasable NOW — Stripe checkout is live on
+  // bevia.co/local, so the CTA is a real buy path, not a waitlist.
+  // The pitch is the founder's own framing: privacy + every other
+  // source + an AI that can act on the map.
   const own = door("Own it", "Bevia Local", "$15 once — launch price (list $30)", [
-    "Runs on this machine.",
-    "Your data never leaves.",
+    "Keep all of your data on your machine.",
+    "Pull in everything else — your AI chats, your repos, your meetings.",
+    "Your AI reads your map and thinks with you, proactively.",
   ]);
-  button(own, "Almost here — learn more", {
-    kind: "ghost",
+  button(own, "Get Bevia Local", {
     full: true,
     onClick: () => window.open(BEVIA_LOCAL_URL, "_blank"),
-  });
-
-  // Door 2 — Rent it. The existing single-flow behavior, unchanged.
-  const rent = door("Rent it", "Bevia Cloud", "from $15/mo", [
-    "Zero setup.",
-    "We run the models.",
-  ]);
-  button(rent, opts.rentLabel ?? "Create account", {
-    full: true,
-    onClick: opts.onRent,
   });
 
   return root;
