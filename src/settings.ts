@@ -220,14 +220,13 @@ export class BeviaNavigatorSettingTab extends PluginSettingTab {
           .onClick(() => openConnectModal(this.plugin)),
       );
 
-    // Two-door exit (Bevia Local spec §12.4): when NEITHER engine is
-    // configured — no cloud key, and Bevia Local isn't wired here yet —
-    // the connect surface shows both honest ways to get one instead of
-    // a single cloud-only dead-end. The Rent door is the existing
-    // guided connect flow, unchanged.
-    if (!this.plugin.settings.token.trim()) {
+    // One-door exit (founder decision 2026-07-17 — only selling Local):
+    // when NEITHER engine is configured — no cloud key, and Bevia Local
+    // isn't wired here yet — the connect surface shows the one honest
+    // way to get one instead of a cloud-only dead-end.
+    if (!this.plugin.settings.token.trim() && !this.plugin.settings.localMode) {
       const doors = renderTwoDoorPanel(containerEl, {
-        lead: "Two ways to run Bevia",
+        lead: "Get Bevia",
         onRent: () => openConnectModal(this.plugin),
         rentLabel: "Create account & connect",
       });
