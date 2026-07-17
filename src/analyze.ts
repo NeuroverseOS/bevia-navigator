@@ -175,7 +175,7 @@ class DiscoveryModal extends Modal {
     const apWrap = card.createDiv();
     apWrap.addClass("bv-u-margin-bottom-20px");
     aperture(apWrap, { size: 46, stroke: 1.3, color: "var(--bv-strengthening-dot)" });
-    mono(card, "Analyze my vault · free · once", { size: 9, track: 0.16, dim: true, block: true }).addClass("bv-u-margin-bottom-14px");
+    mono(card, "Analyze my vault · on your key", { size: 9, track: 0.16, dim: true, block: true }).addClass("bv-u-margin-bottom-14px");
     serif(card, "The links you didn't have time to make.", { size: 24, weight: 400, lh: 1.2 }).addClass("bv-u-margin-bottom-14px");
     const sub = text(card, "Bevia reads a representative sample of your vault and builds a living mind map from it \u2014 finding the connections between your notes, adding to the links you already made, and writing pattern readings your AI can pick up and act on.", { size: 13.5, color: "var(--bv-ink-soft)", lh: 1.55, maxWidth: 330 });
     sub.addClass("bv-u-margin-0-auto-24px");
@@ -213,7 +213,7 @@ class DiscoveryModal extends Modal {
     const paintEstimate = (): void => {
       estEl.setText(this.byokKey.length > 0
         ? `Your vault: ${noteCount} notes, ~${charsLabel} characters — about $${estUsd.toFixed(2)} on your key to read all of it. You pay your AI provider directly; nothing to us. The lowest-cost model tier is plenty — Bevia asks small, structured questions.`
-        : `Free preview reads a sample. Paste your key to read all ${noteCount} notes — we'll show the price first. A free-tier key works; no big model needed.`);
+        : `Paste your AI key to run it — free-tier keys work (Google's takes about a minute). The price shows above before anything runs; you pay your provider directly, never us.`);
     };
     paintEstimate();
     keyInput.addEventListener("input", () => { this.byokKey = keyInput.value.trim(); paintEstimate(); });
@@ -586,11 +586,18 @@ class DiscoveryModal extends Modal {
   }
 
   private async runAnalysis(): Promise<void> {
+    // The run is on THEIR key — the Bevia-funded free lane is retired
+    // (founder, 2026-07-17). The server 402s keyless runs; catch it here
+    // with a friendlier nudge instead of burning a round-trip.
+    if (this.byokKey.length === 0) {
+      new Notice("Paste your AI key first — free-tier keys work (any provider).", 6000);
+      return;
+    }
     this.state = "reading";
     this.render();
 
     // Intake is the only lever: with the visitor's own key the run is
-    // UNLIMITED (every note); the free funded preview reads a capped sample.
+    // UNLIMITED (every note).
     const byok = this.byokKey.length > 0;
     const allFiles = this.plugin.app.vault.getMarkdownFiles();
     const selected = byok
