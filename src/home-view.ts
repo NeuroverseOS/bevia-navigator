@@ -116,12 +116,15 @@ export class BeviaHomeView extends ItemView {
     howLink.addClass("bv-u-margin-bottom-10px");
 
     // ── Connection state decides the page's LEAD ─────────────────────
-    // Three truthful states, not two: a token can be PRESENT and dead.
-    // Before tokenHealth existed, a revoked/wrong-kind key left Home
-    // saying "Connected — you're all set" while every call 401'd.
+    // Four truthful states: paired with Bevia Local on this machine,
+    // cloud-connected, cloud key present-but-dead, or nothing yet.
+    // (Before tokenHealth existed, a revoked/wrong-kind key left Home
+    // saying "Connected — you're all set" while every call 401'd.)
+    const localPaired = this.plugin.settings.localMode && this.plugin.settings.localPort > 0;
     const hasToken = !!this.plugin.settings.token.trim();
-    const keyDead = hasToken && this.plugin.tokenHealth === "invalid";
-    const connected = hasToken && !keyDead;
+    const keyDead = !localPaired && hasToken && this.plugin.tokenHealth === "invalid";
+    const cloudConnected = hasToken && !keyDead && !localPaired;
+    const connected = cloudConnected || localPaired;
 
     // GOLDEN PATH (founder direction 2026-07-05): on a vault that isn't
     // connected, the ONLY button that works without a key is the free
@@ -136,11 +139,12 @@ export class BeviaHomeView extends ItemView {
       hero.addClass("bv-u-border-1px-solid-background-modifier-border");
       hero.addClass("bv-u-background-background-secondary");
       hero.addClass("bv-u-margin-4px-0-18px");
-      hero.createEl("h2", { text: "See this vault as a map — free" }).addClass("bv-u-margin-0-0-6px");
+      hero.createEl("h2", { text: "See this vault as a map" }).addClass("bv-u-margin-0-0-6px");
       const heroSub = hero.createEl("p", {
         text:
           "Bevia reads the notes already here and draws your first map — the ideas, " +
-          "how they cluster, what connects. No account, no key, nothing saved.",
+          "how they cluster, what connects. Runs on your own AI key (free-tier keys " +
+          "work, any provider). No account, nothing saved.",
       });
       heroSub.addClass("bv-u-margin-0-0-12px");
       heroSub.addClass("bv-u-color-text-muted");
@@ -183,7 +187,13 @@ export class BeviaHomeView extends ItemView {
         : "var(--text-faint)";
 
     const statusText = status.createSpan();
-    if (keyDead) {
+    if (localPaired) {
+      statusText.createEl("b", { text: "Paired with Bevia Local" });
+      statusText.appendText(
+        ` — this vault talks to the Bevia app on this computer (port ${this.plugin.settings.localPort}). ` +
+          "Your map syncs into the Bevia/ folder; nothing leaves this machine.",
+      );
+    } else if (keyDead) {
       statusText.createEl("b", { text: "Reconnect — your key stopped working" });
       const reason = this.plugin.tokenProblem;
       statusText.appendText(
@@ -200,30 +210,59 @@ export class BeviaHomeView extends ItemView {
     } else {
       statusText.createEl("b", { text: "Not connected yet" });
       statusText.appendText(
-        " — paste your Bevia key to bring this vault to life. (Already syncing via the desktop app? You can still connect here to add the live Navigator.)",
+        " — running Bevia Local on this computer? Pair below (it's in this plugin's settings). " +
+          "On Bevia Cloud? Paste your access key instead.",
       );
     }
 
-    new Setting(wrap)
-      .setName(connected ? "Connection" : "Connect this vault")
-      .setDesc(
-        connected
-          ? "Re-verify or switch the key this vault uses."
-          : "Create a key at bevia.co → Connections → Keys, then paste and verify it here.",
-      )
-      .addButton((b) =>
-        b
-          .setButtonText(connected ? "Manage connection" : "Connect")
-          .setCta()
-          .onClick(() => openConnectModal(this.plugin)),
-      );
+    const openOwnSettings = () => {
+      const settingApi = (this.app as unknown as {
+        setting?: { open: () => void; openTabById: (id: string) => void };
+      }).setting;
+      settingApi?.open();
+      settingApi?.openTabById(this.plugin.manifest.id);
+    };
+    if (localPaired) {
+      new Setting(wrap)
+        .setName("Connection")
+        .setDesc("Paired with Bevia Local. Manage pairing in this plugin's settings.")
+        .addButton((b) => b.setButtonText("Open settings").onClick(openOwnSettings));
+    } else {
+      new Setting(wrap)
+        .setName(cloudConnected ? "Connection" : "Connect this vault")
+        .setDesc(
+          cloudConnected
+            ? "Re-verify or switch the key this vault uses."
+            : "Bevia Local (recommended): open the Bevia app → Pair a sensor, then enter the port and code in this plugin's settings. Bevia Cloud: paste and verify your access key here.",
+        )
+        .addButton((b) =>
+          !cloudConnected
+            ? b.setButtonText("Pair with Bevia Local").setCta().onClick(openOwnSettings)
+            : b.setButtonText("Manage connection").setCta().onClick(() => openConnectModal(this.plugin)),
+        )
+        .addButton((b) =>
+          !cloudConnected
+            ? b.setButtonText("Paste a cloud key").onClick(() => openConnectModal(this.plugin))
+            : b,
+        );
+    }
 
     // ── What you can do ─────────────────────────────────────────────
     // Two different pages for two different people (golden path): a
     // connected vault gets its working tools; a disconnected vault gets
     // the free demo (the hero above) and ONE honest section about what
     // connecting unlocks — never a wall of buttons that all 401.
-    if (connected) {
+    if (localPaired) {
+      this.section(wrap, "What you can do here");
+      new Setting(wrap)
+        .setName("Ask your map")
+        .setDesc("Questions answered from the map on this computer — grounded in your own notes, nothing leaves the machine.")
+        .addButton((b) => b.setButtonText("Ask").onClick(() => void this.plugin.activateAskView()));
+      new Setting(wrap)
+        .setName("Sync now")
+        .setDesc("Pull your latest territories and daily reads from the Bevia app into this vault's Bevia/ folder right now.")
+        .addButton((b) => b.setButtonText("Sync").onClick(() => void syncAtlasNow(this.plugin)));
+    } else if (cloudConnected) {
       this.section(wrap, "What you can do here");
       new Setting(wrap)
         .setName("Navigator")
@@ -256,7 +295,7 @@ export class BeviaHomeView extends ItemView {
       // Rent door is the existing create-account handoff, unchanged —
       // open bevia.co, make a key, paste it above.
       const doors = renderTwoDoorPanel(wrap, {
-        lead: "Two ways to run Bevia",
+        lead: "Get Bevia",
         onRent: () => window.open(this.plugin.settings.appUrl, "_blank"),
         rentLabel: "Create account at bevia.co",
       });
@@ -274,7 +313,8 @@ export class BeviaHomeView extends ItemView {
     // synced Bevia/ folder), so a disconnected vault doesn't see it —
     // its page is hero (free demo) → connect → what connecting unlocks.
     if (!connected) return;
-    this.section(wrap, "Feed your thinking into Bevia");
+    if (cloudConnected) {
+      this.section(wrap, "Feed your thinking into Bevia");
     new Setting(wrap)
       .setName("Send this vault to Bevia")
       .setDesc(
@@ -294,11 +334,13 @@ export class BeviaHomeView extends ItemView {
       .addButton((b) =>
         b.setButtonText("Get the desktop app").onClick(() => window.open(this.plugin.settings.appUrl, "_blank")),
       );
+    }
 
     // ── Field guide: turning the map into work ──────────────────────
     // Reactivate / Think / Work act on the note you have open, so they have
     // no button here — they explain themselves and tell you where to run
     // them. (The ribbon icons ⚡/💡/🔨 and the Command Palette both fire them.)
+    if (cloudConnected) {
     this.section(wrap, "Turn the map into work");
     const guide = wrap.createEl("p", {
       text:
@@ -325,6 +367,7 @@ export class BeviaHomeView extends ItemView {
         "From a Landmark note. Opens a production workspace with a draft outline and a decision " +
           "record — oriented toward building rather than exploring.",
       );
+    }
 
     // ── Scope ───────────────────────────────────────────────────────
     // Density "levels" are retired: the whole map (and its [[wikilinks]]) is
@@ -400,13 +443,15 @@ export class BeviaHomeView extends ItemView {
     });
     note.addClass("bv-u-color-text-muted");
 
-    // ── Account ─────────────────────────────────────────────────────
-    new Setting(wrap)
-      .setName("Account, keys & billing")
-      .setDesc("Manage your subscription, connections, and keys on the web.")
-      .addButton((b) =>
-        b.setButtonText("Open bevia.co").onClick(() => window.open(this.plugin.settings.appUrl, "_blank")),
-      );
+    // ── Account (cloud only — Local has no web account) ─────────────
+    if (cloudConnected) {
+      new Setting(wrap)
+        .setName("Account, keys & billing")
+        .setDesc("Manage your subscription, connections, and keys on the web.")
+        .addButton((b) =>
+          b.setButtonText("Open bevia.co").onClick(() => window.open(this.plugin.settings.appUrl, "_blank")),
+        );
+    }
   }
 
   /** Set Obsidian's file-explorer sort — the same state its sort icon
