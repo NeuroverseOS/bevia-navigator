@@ -3,22 +3,15 @@
 //
 // Every close in the plugin exits through the same panel:
 //
-//   Own it — Bevia Local · $15 once, launch price (list $30) · runs on
-//   this machine · your data never leaves. Not purchasable yet, so the
-//   door says so honestly ("almost here") and opens bevia.co/local in
-//   the browser — it informs, it never pretends to sell.
+//   Own it — Bevia Local · $30 once · runs on this machine · your
+//   data never leaves. The CTA opens bevia.co/local in the browser,
+//   where Stripe checkout is live.
 //
 //   PRICE STRINGS MIRROR src/copy/canonical.ts PRICING (this package
-//   can't import the website's module). Local = LOCAL_PRICE_LONG
-//   ("$15 once — launch price (list $30)", ADR-0216 as amended
-//   2026-07-09; launch-price licenses grandfathered forever, the $30
-//   list is real). Cloud = "from $15/mo" (Standard $15 / Pro $30).
-//   When canonical.ts changes, change here too.
-//
-//   Rent it — Bevia Cloud · from $15/mo · zero setup · we run the
-//   models. This door IS the surface's existing create-account/connect
-//   flow, unchanged — the caller passes it in; this module never
-//   invents a new handoff.
+//   can't import the website's module). Local = $30 one-time (the
+//   two-product model, ADR-0218; the earlier "$15 launch price" was
+//   retired by the founder 2026-07-17 — flat $30, no launch-price
+//   framing). When canonical.ts changes, change here too.
 //
 // Kept dependency-light on purpose (obsidian + the v27 atoms only) so
 // the analyze close, the first-run preview, Home Base, and the settings
@@ -77,7 +70,7 @@ export function renderTwoDoorPanel(
   // bevia.co/local, so the CTA is a real buy path, not a waitlist.
   // The pitch is the founder's own framing: privacy + every other
   // source + an AI that can act on the map.
-  const own = door("Own it", "Bevia Local", "$15 once — launch price (list $30)", [
+  const own = door("Own it", "Bevia Local", "$30 once — yours forever", [
     "Keep all of your data on your machine.",
     "Pull in everything else — your AI chats, your repos, your meetings.",
     "Your AI reads your map and thinks with you, proactively.",
