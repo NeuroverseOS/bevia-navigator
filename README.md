@@ -45,7 +45,7 @@ Please read before installing:
   frontmatter marker, and removals go to your system trash (recoverable) —
   your own notes are never deleted, even under a same-named folder.
 
-## Doctrine — what this plugin will and won't do
+## Ground rules — what this plugin will and won't do
 
 Per `CLAUDE.md § Projection-as-stage`:
 
