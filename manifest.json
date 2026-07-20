@@ -1,7 +1,7 @@
 {
   "id": "bevia-navigator",
   "name": "Bevia Navigator",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "minAppVersion": "1.5.0",
   "description": "Not memory. Meaning. A side panel shows what the note you're reading connects to, and Bevia's private map of what you actually mean — built with Bevia Local on your own machine — syncs into a Bevia/ folder as plain markdown you own.",
   "author": "Bevia",
