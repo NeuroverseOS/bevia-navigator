@@ -123,7 +123,18 @@ export async function sendVaultToBevia(
     const fm = plugin.app.metadataCache.getFileCache(file)?.frontmatter as
       | Record<string, unknown>
       | undefined;
-    if (fm && (fm["bevia_managed"] === true || fm["bevia_generated"] === true)) {
+    // Mirror of the server guard's isBeviaProvenancedNote (echo audit
+    // 2026-07-20): the stamp the materializers ACTUALLY emit is
+    // bevia_schema_version / mapped_by — the booleans alone missed
+    // Bevia-composed notes moved out of Bevia/ or living in Workspace.
+    if (
+      fm &&
+      (fm["bevia_managed"] === true ||
+        fm["bevia_generated"] === true ||
+        (typeof fm["bevia_schema_version"] === "string" && fm["bevia_schema_version"].length > 0) ||
+        typeof fm["bevia_schema_version"] === "number" ||
+        fm["mapped_by"] === "Bevia")
+    ) {
       skipped += 1;
       continue;
     }
