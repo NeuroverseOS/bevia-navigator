@@ -1043,3 +1043,9 @@
   margin-top: 6px;
 }
 .bevia-query-ask-input { flex: 1; min-width: 0; }
+
+/* ── Home status (scan-clean: classes instead of element.style) ────── */
+.bevia-status-ok { background: rgba(40, 160, 90, 0.10); }
+.bevia-status-idle { background: var(--background-secondary); }
+.bevia-dot-ok { background: rgb(40, 160, 90); }
+.bevia-dot-idle { background: var(--text-faint); }

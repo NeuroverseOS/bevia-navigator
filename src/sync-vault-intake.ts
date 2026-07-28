@@ -46,15 +46,17 @@ function isBeviaOwned(path: string): boolean {
 export async function sendVaultToBevia(
   plugin: BeviaNavigatorPlugin,
 ): Promise<{ sent: number; skipped: number; batches: number }> {
-  const token = plugin.settings.token?.trim();
-  if (!token) {
-    new Notice("Bevia: paste your token in Settings → Bevia Navigator first.");
+  // Intake goes to the engine on this machine (postVaultNotes →
+  // POST /intake/capture); the vault must be paired first.
+  if (!plugin.settings.localToken?.trim()) {
+    new Notice(
+      "This vault isn't paired yet — open Settings → Bevia Local and connect to the Bevia app.",
+    );
     return { sent: 0, skipped: 0, batches: 0 };
   }
 
   const vaultId = await getOrCreateVaultId(plugin);
   const files = plugin.app.vault.getMarkdownFiles();
-  const config = { baseUrl: plugin.settings.baseUrl, token };
 
   let sent = 0;
   let skipped = 0;
@@ -64,7 +66,7 @@ export async function sendVaultToBevia(
   const flush = async (): Promise<void> => {
     if (batch.length === 0) return;
     batches += 1;
-    const resp = await postVaultNotes(config, { vault_id: vaultId, notes: batch });
+    const resp = await postVaultNotes({ vault_id: vaultId, notes: batch });
     sent += resp.moments;
     batch = [];
   };
@@ -113,7 +115,18 @@ export async function sendVaultToBevia(
     const fm = plugin.app.metadataCache.getFileCache(file)?.frontmatter as
       | Record<string, unknown>
       | undefined;
-    if (fm && (fm["bevia_managed"] === true || fm["bevia_generated"] === true)) {
+    // Mirror of the server guard's isBeviaProvenancedNote (echo audit
+    // 2026-07-20): the stamp the materializers ACTUALLY emit is
+    // bevia_schema_version / mapped_by — the booleans alone missed
+    // Bevia-composed notes moved out of Bevia/ or living in Workspace.
+    if (
+      fm &&
+      (fm["bevia_managed"] === true ||
+        fm["bevia_generated"] === true ||
+        (typeof fm["bevia_schema_version"] === "string" && fm["bevia_schema_version"].length > 0) ||
+        typeof fm["bevia_schema_version"] === "number" ||
+        fm["mapped_by"] === "Bevia")
+    ) {
       skipped += 1;
       continue;
     }

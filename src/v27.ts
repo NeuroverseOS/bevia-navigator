@@ -81,10 +81,13 @@ export function mono(
   if (opts.dim) cls.push("bv-dim");
   if (opts.block) cls.push("bv-block");
   const span = parent.createSpan({ cls: cls.join(" "), text: textStr });
-  // Genuinely dynamic per-call values stay inline (audit ST2).
-  span.style.fontSize = `${opts.size ?? 10.5}px`;
-  span.style.letterSpacing = `${opts.track ?? 0.14}em`;
-  if (opts.color) span.style.color = opts.color;
+  // Genuinely dynamic per-call values stay inline (audit ST2) — via
+  // setCssProps, the Obsidian-blessed API the public plugin scan asks for.
+  span.setCssProps({
+    "font-size": `${opts.size ?? 10.5}px`,
+    "letter-spacing": `${opts.track ?? 0.14}em`,
+    ...(opts.color ? { color: opts.color } : {}),
+  });
   return span;
 }
 
@@ -95,10 +98,12 @@ export function serif(
   opts: { size?: number; weight?: number; italic?: boolean; color?: string; lh?: number } = {},
 ): HTMLElement {
   const div = parent.createDiv({ cls: opts.italic ? "bv-serif bv-italic" : "bv-serif", text: textStr });
-  div.style.fontSize = `${opts.size ?? 17}px`;
-  if (opts.weight) div.style.fontWeight = String(opts.weight);
-  if (opts.color) div.style.color = opts.color;
-  div.style.lineHeight = String(opts.lh ?? 1.32);
+  div.setCssProps({
+    "font-size": `${opts.size ?? 17}px`,
+    "line-height": String(opts.lh ?? 1.32),
+    ...(opts.weight ? { "font-weight": String(opts.weight) } : {}),
+    ...(opts.color ? { color: opts.color } : {}),
+  });
   return div;
 }
 
@@ -109,10 +114,12 @@ export function text(
   opts: { size?: number; color?: string; lh?: number; maxWidth?: number } = {},
 ): HTMLElement {
   const div = parent.createDiv({ cls: "bv-text", text: textStr });
-  div.style.fontSize = `${opts.size ?? 12.5}px`;
-  if (opts.color) div.style.color = opts.color;
-  div.style.lineHeight = String(opts.lh ?? 1.45);
-  if (opts.maxWidth) div.style.maxWidth = `${opts.maxWidth}px`;
+  div.setCssProps({
+    "font-size": `${opts.size ?? 12.5}px`,
+    "line-height": String(opts.lh ?? 1.45),
+    ...(opts.color ? { color: opts.color } : {}),
+    ...(opts.maxWidth ? { "max-width": `${opts.maxWidth}px` } : {}),
+  });
   return div;
 }
 
@@ -162,8 +169,7 @@ export function territoryCard(
 /** The slow-rotating "reading" aperture — motion, never a progress bar. */
 export function readingAperture(parent: HTMLElement, size = 72): HTMLElement {
   const wrap = parent.createDiv({ cls: "bv-reading" });
-  wrap.style.width = `${size}px`;
-  wrap.style.height = `${size}px`;
+  wrap.setCssProps({ width: `${size}px`, height: `${size}px` });
 
   wrap.createDiv({ cls: "bv-reading-glow" });
 
@@ -210,8 +216,7 @@ export function readingAperture(parent: HTMLElement, size = 72): HTMLElement {
 
   const pipWrap = wrap.createDiv({ cls: "bv-reading-pipwrap" });
   const pip = pipWrap.createSpan({ cls: "bv-reading-pip" });
-  pip.style.width = `${size * 0.13}px`;
-  pip.style.height = `${size * 0.13}px`;
+  pip.setCssProps({ width: `${size * 0.13}px`, height: `${size * 0.13}px` });
 
   return wrap;
 }
@@ -219,8 +224,10 @@ export function readingAperture(parent: HTMLElement, size = 72): HTMLElement {
 /** A filled state dot. */
 export function dot(parent: HTMLElement, state: BvState, size = 7): HTMLElement {
   const span = parent.createSpan({ cls: "bv-dot" });
-  span.style.width = `${size}px`;
-  span.style.height = `${size}px`;
-  span.style.background = stateVar(state, "dot");
+  span.setCssProps({
+    width: `${size}px`,
+    height: `${size}px`,
+    background: stateVar(state, "dot"),
+  });
   return span;
 }
