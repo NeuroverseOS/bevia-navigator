@@ -46,25 +46,17 @@ function isBeviaOwned(path: string): boolean {
 export async function sendVaultToBevia(
   plugin: BeviaNavigatorPlugin,
 ): Promise<{ sent: number; skipped: number; batches: number }> {
-  const token = plugin.settings.token?.trim() ?? "";
-  if (plugin.settings.localMode) {
-    // Bevia Local: intake goes to the local engine (postVaultNotes
-    // reroutes to POST /intake/capture) — the cloud token is not needed,
-    // but the vault must be paired.
-    if (!plugin.settings.localToken?.trim()) {
-      new Notice(
-        "Bevia Local is on but this vault isn't paired yet — open Settings → Bevia Local and connect with the code from the desktop app.",
-      );
-      return { sent: 0, skipped: 0, batches: 0 };
-    }
-  } else if (!token) {
-    new Notice("Bevia: paste your token in Settings → Bevia Navigator first.");
+  // Intake goes to the engine on this machine (postVaultNotes →
+  // POST /intake/capture); the vault must be paired first.
+  if (!plugin.settings.localToken?.trim()) {
+    new Notice(
+      "This vault isn't paired yet — open Settings → Bevia Local and connect to the Bevia app.",
+    );
     return { sent: 0, skipped: 0, batches: 0 };
   }
 
   const vaultId = await getOrCreateVaultId(plugin);
   const files = plugin.app.vault.getMarkdownFiles();
-  const config = { baseUrl: plugin.settings.baseUrl, token };
 
   let sent = 0;
   let skipped = 0;
@@ -74,7 +66,7 @@ export async function sendVaultToBevia(
   const flush = async (): Promise<void> => {
     if (batch.length === 0) return;
     batches += 1;
-    const resp = await postVaultNotes(config, { vault_id: vaultId, notes: batch });
+    const resp = await postVaultNotes({ vault_id: vaultId, notes: batch });
     sent += resp.moments;
     batch = [];
   };

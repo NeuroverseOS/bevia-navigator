@@ -1,11 +1,11 @@
 {
   "id": "bevia-navigator",
   "name": "Bevia Navigator",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "minAppVersion": "1.5.0",
-  "description": "Not memory. Meaning. A side panel shows what the note you're reading connects to, and Bevia's private map of what you actually mean — built with Bevia Local on your own machine — syncs into a Bevia/ folder as plain markdown you own.",
+  "description": "Not memory. Meaning. See where each note lives on a private map of your thinking, compiled by the Bevia engine on your own machine and written into your vault as plain markdown you own. No internet requests — everything stays on your computer.",
   "author": "Bevia",
   "authorUrl": "https://bevia.co",
-  "fundingUrl": "https://bevia.co/pricing",
+  "fundingUrl": "https://bevia.co/local",
   "isDesktopOnly": false
 }

@@ -56,10 +56,7 @@ class AskMollyModal extends Modal {
       status.setText("Molly is thinking…");
       answer.empty();
       try {
-        const res = await fetchMollyAsk(
-          { baseUrl: this.plugin.settings.baseUrl, token: this.plugin.settings.token },
-          message,
-        );
+        const res = await fetchMollyAsk(message);
         status.setText("");
         this.renderAnswer(answer, res);
       } catch (e) {

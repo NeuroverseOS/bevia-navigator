@@ -195,10 +195,7 @@ export class BeviaAskView extends ItemView {
     const pending = this.appendPending();
 
     try {
-      const res = await fetchMollyAsk(
-        { baseUrl: this.plugin.settings.baseUrl, token: this.plugin.settings.token },
-        message,
-      );
+      const res = await fetchMollyAsk(message);
       pending.remove();
       this.appendAnswer(res);
     } catch (e) {
